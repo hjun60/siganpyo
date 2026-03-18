@@ -10,13 +10,19 @@
   "lang": "ko",
   "icons": [
     {
-      "src": "/icon-512.png",
+      "src": "/app-icon-fixed.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app-icon-fixed.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/app-icon-fixed.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
