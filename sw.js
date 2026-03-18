@@ -1,5 +1,5 @@
 // ─── 버전 변경 시 캐시가 자동 갱신됩니다 ───────────────────────────
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const CACHE_NAME    = `luna-siganpyo-${CACHE_VERSION}`;
 
 // 반드시 캐시할 핵심 파일 (오프라인에서도 앱이 열려야 하는 것들)
@@ -57,26 +57,25 @@ self.addEventListener("fetch", (e) => {
 
   const url = new URL(e.request.url);
 
-  // 1. 같은 오리진(내 사이트 파일): Cache First → 네트워크 fallback
+  // 1. 같은 오리진(내 사이트 파일): Network First → 캐시 fallback
+  //    → 항상 최신 파일을 받고, 오프라인일 때만 캐시 사용
   if (url.origin === self.location.origin) {
     e.respondWith(
-      caches.match(e.request).then((cached) => {
-        if (cached) return cached;
-
-        return fetch(e.request)
-          .then((res) => {
-            // 정상 응답이면 캐시에도 저장
-            if (res && res.status === 200) {
-              const clone = res.clone();
-              caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
-            }
-            return res;
-          })
-          .catch(() => {
-            // 오프라인이고 캐시도 없을 때 → index.html 반환
-            return caches.match("/index.html");
-          });
-      })
+      fetch(e.request)
+        .then((res) => {
+          // 정상 응답이면 캐시도 갱신
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => {
+          // 오프라인이면 캐시에서 반환
+          return caches.match(e.request).then((cached) =>
+            cached || caches.match("/index.html")
+          );
+        })
     );
     return;
   }
@@ -88,7 +87,6 @@ self.addEventListener("fetch", (e) => {
 
       return fetch(e.request)
         .then((res) => {
-          // opaque(no-cors) 응답도 캐시 허용
           if (res) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
@@ -96,7 +94,6 @@ self.addEventListener("fetch", (e) => {
           return res;
         })
         .catch(() => {
-          // 오프라인 + 캐시 없음 → 그냥 실패 (앱 자체는 동작)
           return new Response("", { status: 408 });
         });
     })
