@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -779,8 +779,10 @@
       .tl-corner { grid-column: 1; grid-row: 1; }
       .tl-time {
         grid-column: 1;
-        display: grid;
-        place-items: center;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 1px;
         font-size: 7.5pt;
         font-weight: 800;
         line-height: 1;
@@ -819,11 +821,7 @@
         text-align: center;
         line-height: 1.35;
       }
-      .tl-event .l1,
-      .tl-event .l2,
-      .tl-event .l3 {
-        overflow: visible;
-      }
+
       .tl-event .l1 {
         font-weight: 900;
         font-size: calc(6.5pt * var(--event-scale, 1));
@@ -1322,7 +1320,7 @@
         </div>
         <div class="editor-hint">
           각 항목을 <b>제목 / 교실 / 시간</b> 순서로 입력하세요.
-          시간 형식: <code>13:00~14:20</code> &nbsp;|&nbsp; <code>종료 12:50</code> &nbsp;|&nbsp; <code>15:10~</code><br/>
+          시간은 <b>시작</b>·<b>종료</b> 드롭다운으로 선택하며, 한쪽만 선택해도 됩니다.<br/>
           색상 동그라미로 색 변경, <b>×</b> 삭제, <b>복사</b> 버튼과 <b>붙여넣기</b>로 같은 내용을 다른 요일에 빠르게 넣을 수 있어요.
         </div>
         <div class="saturday-toggle-row">
@@ -1451,7 +1449,7 @@
       const FULL_SCHEDULE_END = 24 * 60;    // 24:00
       let SLOT_MIN = 10;
       const DEFAULT_DISPLAY_START = 9 * 60;  // 09:00 (일정 없을 때 기본 표시 시작)
-      const DEFAULT_DISPLAY_END = 18 * 60;   // 18:00 (기본 표시 종료)
+      const DEFAULT_DISPLAY_END = 17 * 60;   // 17:00 (기본 표시 종료)
       // 수동 표시 범위 (null 이면 자동)
       let manualDisplayStart = null;
       let manualDisplayEnd = null;
@@ -2190,6 +2188,30 @@
         });
       }
 
+      /* ── 셀 높이에 맞게 이벤트 글자 크기 자동 축소 ── */
+      function fitEventText(container) {
+        container.querySelectorAll(".tl-event").forEach((ev) => {
+          if (ev.clientHeight <= 0) return;
+          let scale = parseFloat(ev.style.getPropertyValue("--event-scale") || "1");
+          const minScale = 0.20;
+          for (let i = 0; i < 20; i++) {
+            void ev.offsetHeight;
+            const lines = ev.querySelectorAll(".l1,.l2,.l3");
+            if (!lines.length) break;
+            let contentH = 0;
+            lines.forEach((ln) => { contentH += ln.offsetHeight; });
+            contentH += (lines.length - 1) * 1.32;
+            const cs = getComputedStyle(ev);
+            const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+            const needed = contentH + padV;
+            if (needed <= ev.clientHeight + 1) break;
+            if (scale <= minScale) break;
+            scale = Math.max(minScale, scale * (ev.clientHeight / needed) * 0.90);
+            ev.style.setProperty("--event-scale", String(scale.toFixed(3)));
+          }
+        });
+      }
+
       function renderPreview() {
         const tl  = document.getElementById("timeline");
         const ptl = document.getElementById("printTimeline");
@@ -2199,6 +2221,7 @@
         drawEvents(ptl);
         requestAnimationFrame(() => {
           drawEvents(tl);
+          requestAnimationFrame(() => fitEventText(tl));
         });
       }
 
@@ -2290,6 +2313,9 @@
         const chkSun = document.getElementById("sundayCheck");
         if (chkSun) chkSun.checked = includeSunday;
         setPrintSize(tt.wCm ?? 8.7, tt.hCm ?? 5.5, true);
+        manualDisplayStart = null;
+        manualDisplayEnd   = null;
+        if (typeof initDisplayRangeSelectors === 'function') initDisplayRangeSelectors();
         renderEditor();
         renderPreview();
         markClean();
@@ -2657,6 +2683,7 @@
         setTimeout(() => window.print(), 150);
       });
 
+
       /* ── 확대 미리보기 모달 ── */
       const modalBackdrop   = document.getElementById("modalBackdrop");
       const modalSheetInner = document.getElementById("modalSheetInner");
@@ -2686,6 +2713,7 @@
         // 이벤트는 원본 크기 기준으로 그림 (transform이 함께 확대)
         const mtl = document.getElementById("modalTimeline");
         drawEvents(mtl);
+        requestAnimationFrame(() => fitEventText(mtl));
       }
 
       function openModal() {
@@ -2888,9 +2916,10 @@
           "z-index:-1",
         ].join(";");
 
-        // 레이아웃 안정 대기
+        // 레이아웃 안정 대기 후 글자 크기 자동 조정
         await new Promise((r) => requestAnimationFrame(r));
         await new Promise((r) => setTimeout(r, 60));
+        fitEventText(ptl);
 
         const sheet = wrapper.querySelector(".sheet");
         try {
@@ -2952,6 +2981,12 @@
         } finally {
           setLoading(btn, false, origLabel);
         }
+      });
+
+      // 폰트 로드 완료 후 글자 크기 재조정
+      document.fonts.ready.then(() => {
+        const tl = document.getElementById("timeline");
+        if (tl) fitEventText(tl);
       });
 
     </script>
