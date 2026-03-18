@@ -260,84 +260,6 @@
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
       }
-      .timetable-list-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      .timetable-list-row select {
-        flex: 1;
-        min-width: 140px;
-        padding: 8px 12px;
-        border: none;
-        background: var(--fill);
-        border-radius: var(--radius-sm);
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--label);
-        cursor: pointer;
-        outline: none;
-      }
-      .timetable-list-row select:focus {
-        background: var(--fill2);
-      }
-      .timetable-list {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: flex-start;
-      }
-      .timetable-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 160px;
-        min-height: 36px;
-        padding: 6px 10px;
-        background: var(--fill);
-        border-radius: var(--radius-sm);
-        font-size: 12.5px;
-        transition: background 0.15s;
-        flex-shrink: 0;
-      }
-      .timetable-item:hover { background: var(--fill2); }
-      .timetable-item.current {
-        background: rgba(0,122,255,0.12);
-        font-weight: 600;
-        color: var(--blue);
-      }
-      .timetable-item-name {
-        flex: 1;
-        cursor: pointer;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        min-width: 0;
-      }
-      .timetable-item-actions {
-        display: flex;
-        gap: 4px;
-        flex-shrink: 0;
-      }
-      .timetable-item-btn {
-        width: 26px;
-        height: 26px;
-        border: none;
-        background: transparent;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        color: var(--secondary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.15s, background 0.15s;
-      }
-      .timetable-item-btn:hover { background: var(--fill2); color: var(--label); }
-      .timetable-item-btn.rename:hover { color: var(--blue); }
-      .timetable-item-btn.delete:hover { color: var(--red); }
       .editor-hint {
         font-size: 11.5px;
         color: var(--secondary);
@@ -549,7 +471,33 @@
         color: #000;
         min-width: 0;
         overflow-x: auto;
+        transition: box-shadow 0.15s, opacity 0.15s;
       }
+      .event-card.drag-over {
+        box-shadow: 0 0 0 2.5px var(--blue), var(--shadow-xs);
+        opacity: 0.85;
+      }
+      .event-card.dragging {
+        opacity: 0.4;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+      }
+      .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        cursor: grab;
+        color: rgba(0,0,0,0.25);
+        font-size: 13px;
+        line-height: 1;
+        flex-shrink: 0;
+        border-radius: 4px;
+        user-select: none;
+        touch-action: none;
+      }
+      .drag-handle:hover { color: rgba(0,0,0,0.5); background: rgba(0,0,0,0.06); }
+      .drag-handle:active { cursor: grabbing; }
       .event-card .card-field label { color: #333; }
       .event-card .card-field input,
       .event-card .time-select {
@@ -1372,6 +1320,10 @@
             <input type="checkbox" id="saturdayCheck" />
             <span>토요일 추가</span>
           </label>
+          <label class="saturday-toggle">
+            <input type="checkbox" id="sundayCheck" />
+            <span>일요일 추가</span>
+          </label>
           <div class="slot-interval-row">
             <span class="slot-interval-label">시간 단위</span>
             <div class="slot-interval-btns" id="slotIntervalBtns">
@@ -1485,11 +1437,11 @@
 
     <script>
       /* ── 상수 / 색상 ── */
-      const FULL_SCHEDULE_START = 7 * 60;    // 07:00 (시간 선택·이벤트 유효 범위)
-      const FULL_SCHEDULE_END = 21 * 60;    // 21:00
+      const FULL_SCHEDULE_START = 0 * 60;    // 00:00 (시간 선택·이벤트 유효 범위)
+      const FULL_SCHEDULE_END = 24 * 60;    // 24:00
       let SLOT_MIN = 10;
-      const DEFAULT_DISPLAY_START = 12 * 60; // 12:00 (일정 없을 때 기본 표시 시작)
-      const DEFAULT_DISPLAY_END = 17 * 60;   // 17:00 (기본 표시 종료)
+      const DEFAULT_DISPLAY_START = 9 * 60;  // 09:00 (일정 없을 때 기본 표시 시작)
+      const DEFAULT_DISPLAY_END = 18 * 60;   // 18:00 (기본 표시 종료)
       // 수동 표시 범위 (null 이면 자동)
       let manualDisplayStart = null;
       let manualDisplayEnd = null;
@@ -1502,9 +1454,15 @@
         { key: "fri", label: "금" },
       ];
       const DAY_SAT = { key: "sat", label: "토" };
+      const DAY_SUN = { key: "sun", label: "일" };
       let includeSaturday = false;
+      let includeSunday = false;
       function getActiveDays() {
-        return includeSaturday ? [...days, DAY_SAT] : days;
+        const result = [];
+        if (includeSunday) result.push(DAY_SUN);
+        result.push(...days);
+        if (includeSaturday) result.push(DAY_SAT);
+        return result;
       }
 
       const COLORS = [
@@ -1579,6 +1537,7 @@
           hCm: overrides?.hCm ?? document.getElementById("hCm").value,
           uidCounter,
           includeSaturday: overrides?.includeSaturday ?? includeSaturday,
+          includeSunday: overrides?.includeSunday ?? includeSunday,
         });
         updateUndoBtn();
       }
@@ -1594,6 +1553,13 @@
           if (cur) cur.includeSaturday = includeSaturday;
           const chk = document.getElementById("saturdayCheck");
           if (chk) chk.checked = includeSaturday;
+        }
+        if (s.includeSunday !== undefined) {
+          includeSunday = s.includeSunday;
+          const cur = timetables?.find((t) => t.id === currentTimetableId);
+          if (cur) cur.includeSunday = includeSunday;
+          const chk = document.getElementById("sundayCheck");
+          if (chk) chk.checked = includeSunday;
         }
         setPrintSize(s.wCm, s.hCm, true);
         renderEditor();
@@ -1621,6 +1587,8 @@
           const hdr = document.createElement("div");
           hdr.className = "day-col-header";
           hdr.textContent = d.label;
+          if (d.key === "sat") hdr.style.color = "#1d4ed8";
+          if (d.key === "sun") hdr.style.color = "#dc2626";
           col.appendChild(hdr);
 
           events
@@ -1676,8 +1644,10 @@
             addRow.appendChild(pasteBtn);
           }
           col.appendChild(addRow);
-
           editorDays.appendChild(col);
+
+          // 드래그 앤 드롭 초기화
+          initDragDrop(col, d.key);
         });
       }
 
@@ -1686,8 +1656,16 @@
 
         const card = document.createElement("div");
         card.className = "event-card";
+        card.dataset.eventId = e.id;
         card.style.background = colorInfo.hex;
         card.style.borderLeftColor = colorInfo.hex === "#ffffff" ? "#ccc" : colorInfo.hex;
+
+        /* 드래그 핸들 */
+        const handle = document.createElement("div");
+        handle.className = "drag-handle";
+        handle.title = "드래그해서 순서 변경";
+        handle.textContent = "≡";
+        card.appendChild(handle);
 
         /* 상단: 색상 선택 + 삭제 */
         const top = document.createElement("div");
@@ -1829,6 +1807,115 @@
         }
 
         return card;
+      }
+
+      /* ── 드래그 앤 드롭 ── */
+      let dragSrcId = null;   // 드래그 중인 카드의 event id
+      let dragOverId = null;  // 현재 hover 중인 카드의 event id
+
+      function initDragDrop(col, dayKey) {
+        const cards = col.querySelectorAll(".event-card");
+
+        cards.forEach((card) => {
+          const handle = card.querySelector(".drag-handle");
+          if (!handle) return;
+          const evId = card.dataset.eventId;
+
+          // ── 마우스 드래그 ──
+          handle.addEventListener("mousedown", () => {
+            card.setAttribute("draggable", "true");
+          });
+          card.addEventListener("dragstart", (ev) => {
+            dragSrcId = evId;
+            card.classList.add("dragging");
+            ev.dataTransfer.effectAllowed = "move";
+            ev.dataTransfer.setData("text/plain", evId);
+          });
+          card.addEventListener("dragend", () => {
+            card.removeAttribute("draggable");
+            card.classList.remove("dragging");
+            col.querySelectorAll(".event-card").forEach((c) => c.classList.remove("drag-over"));
+            dragSrcId = null;
+            dragOverId = null;
+          });
+          card.addEventListener("dragover", (ev) => {
+            ev.preventDefault();
+            ev.dataTransfer.dropEffect = "move";
+            if (evId === dragSrcId) return;
+            col.querySelectorAll(".event-card").forEach((c) => c.classList.remove("drag-over"));
+            dragOverId = evId;
+            card.classList.add("drag-over");
+          });
+          card.addEventListener("drop", (ev) => {
+            ev.preventDefault();
+            if (!dragSrcId || dragSrcId === evId) return;
+            swapCardTimes(dayKey, dragSrcId, evId);
+          });
+
+          // ── 터치 드래그 ──
+          let touchDragActive = false;
+          let touchClone = null;
+          let touchOffsetX = 0, touchOffsetY = 0;
+
+          handle.addEventListener("touchstart", (ev) => {
+            if (ev.touches.length !== 1) return;
+            const touch = ev.touches[0];
+            const rect = card.getBoundingClientRect();
+            touchOffsetX = touch.clientX - rect.left;
+            touchOffsetY = touch.clientY - rect.top;
+            touchDragActive = true;
+            dragSrcId = evId;
+
+            touchClone = card.cloneNode(true);
+            touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.75;pointer-events:none;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.22);border-radius:8px;`;
+            document.body.appendChild(touchClone);
+            card.classList.add("dragging");
+          }, { passive: true });
+
+          handle.addEventListener("touchmove", (ev) => {
+            if (!touchDragActive) return;
+            ev.preventDefault();
+            const touch = ev.touches[0];
+            const x = touch.clientX - touchOffsetX;
+            const y = touch.clientY - touchOffsetY;
+            if (touchClone) { touchClone.style.left = `${x}px`; touchClone.style.top = `${y}px`; }
+
+            col.querySelectorAll(".event-card").forEach((c) => c.classList.remove("drag-over"));
+            const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest(".event-card[data-event-id]");
+            if (target && target.dataset.eventId !== dragSrcId) {
+              dragOverId = target.dataset.eventId;
+              target.classList.add("drag-over");
+            }
+          }, { passive: false });
+
+          handle.addEventListener("touchend", () => {
+            if (!touchDragActive) return;
+            touchDragActive = false;
+            if (touchClone) { touchClone.remove(); touchClone = null; }
+            card.classList.remove("dragging");
+            col.querySelectorAll(".event-card").forEach((c) => c.classList.remove("drag-over"));
+            if (dragSrcId && dragOverId && dragSrcId !== dragOverId) {
+              swapCardTimes(dayKey, dragSrcId, dragOverId);
+            }
+            dragSrcId = null;
+            dragOverId = null;
+          });
+        });
+      }
+
+      function swapCardTimes(dayKey, idA, idB) {
+        const idxA = events.findIndex((x) => x.id === idA);
+        const idxB = events.findIndex((x) => x.id === idB);
+        if (idxA < 0 || idxB < 0) return;
+        // 같은 요일 카드끼리만 교환 허용
+        if (events[idxA].day !== dayKey || events[idxB].day !== dayKey) return;
+        pushUndoState();
+        const tmpTime = events[idxA].time;
+        events[idxA].time = events[idxB].time;
+        events[idxB].time = tmpTime;
+        markDirty();
+        renderEditor();
+        renderPreview();
       }
 
       /* ── 미리보기 렌더링 ── */
@@ -2027,7 +2114,10 @@
         activeDays.forEach((d, i) => {
           const h = document.createElement("div");
           h.className = "tl-head";
-          h.style.cssText = `grid-column:${i + 2};grid-row:1`;
+          let extraStyle = "";
+          if (d.key === "sat") extraStyle = "color:#1d4ed8;";
+          if (d.key === "sun") extraStyle = "color:#dc2626;";
+          h.style.cssText = `grid-column:${i + 2};grid-row:1;${extraStyle}`;
           h.textContent = d.label;
           container.appendChild(h);
         });
@@ -2144,6 +2234,7 @@
             cur.wCm = wCm;
             cur.hCm = hCm;
             cur.includeSaturday = includeSaturday;
+            cur.includeSunday = includeSunday;
             cur.updatedAt = Date.now();
           }
           localStorage.setItem(TIMETABLES_KEY, JSON.stringify({ timetables, currentTimetableId: currentTimetableId }));
@@ -2167,7 +2258,7 @@
                 const payload = JSON.parse(old);
                 if (Array.isArray(payload.events)) {
                   const id = generateTimetableId();
-                  timetables = [{ id, name: "저장된 시간표", events: payload.events, wCm: payload.wCm || 8.7, hCm: payload.hCm || 5.5, includeSaturday: false, updatedAt: Date.now() }];
+                  timetables = [{ id, name: "저장된 시간표", events: payload.events, wCm: payload.wCm || 8.7, hCm: payload.hCm || 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() }];
                   currentTimetableId = id;
                 }
               } catch (_) {}
@@ -2185,30 +2276,15 @@
         includeSaturday = !!tt.includeSaturday;
         const chk = document.getElementById("saturdayCheck");
         if (chk) chk.checked = includeSaturday;
+        includeSunday = !!tt.includeSunday;
+        const chkSun = document.getElementById("sundayCheck");
+        if (chkSun) chkSun.checked = includeSunday;
         setPrintSize(tt.wCm ?? 8.7, tt.hCm ?? 5.5, true);
         renderEditor();
         renderPreview();
         markClean();
         undoHistory = [];
         updateUndoBtn();
-      }
-
-      function renderTimetableSelect() {
-        const sel = document.getElementById("timetableSelect");
-        const prevVal = sel.value;
-        sel.innerHTML = "";
-        const opt0 = document.createElement("option");
-        opt0.value = "";
-        opt0.textContent = "시간표 선택";
-        sel.appendChild(opt0);
-        timetables.forEach((t) => {
-          const opt = document.createElement("option");
-          opt.value = t.id;
-          opt.textContent = t.name || "제목 없음";
-          if (t.id === currentTimetableId) opt.selected = true;
-          sel.appendChild(opt);
-        });
-        if (currentTimetableId) sel.value = currentTimetableId;
       }
 
       /* ── @page 크기 동적 주입 (CSS 변수는 @page 안에서 미지원) ── */
@@ -2263,6 +2339,17 @@
         includeSaturday = e.target.checked;
         const cur = getCurrentTimetable();
         if (cur) cur.includeSaturday = includeSaturday;
+        persistTimetables();
+        markDirty();
+        renderEditor();
+        renderPreview();
+      });
+
+      document.getElementById("sundayCheck").addEventListener("change", (e) => {
+        pushUndoState();
+        includeSunday = e.target.checked;
+        const cur = getCurrentTimetable();
+        if (cur) cur.includeSunday = includeSunday;
         persistTimetables();
         markDirty();
         renderEditor();
@@ -2368,9 +2455,7 @@
       });
 
       /* ── 시간표 목록 / 저장 모달 ── */
-      let saveModalMode = "save"; // "save" | "rename"
-      let saveModalTargetId = null; // rename 시 대상 tt id
-
+      
       function renderTimetableSelect() {
         const list = document.getElementById("timetableList");
         const addBtn = document.getElementById("newTimetableBtn");
@@ -2453,7 +2538,7 @@
             applyTimetable(timetables[0]);
           } else {
             const newId = generateTimetableId();
-            const newTt = { id: newId, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, updatedAt: Date.now() };
+            const newTt = { id: newId, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
             timetables.push(newTt);
             currentTimetableId = newId;
             applyTimetable(newTt);
@@ -2474,7 +2559,7 @@
 
       document.getElementById("newTimetableBtn").addEventListener("click", () => {
         const id = generateTimetableId();
-        const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, updatedAt: Date.now() };
+        const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
         timetables.push(tt);
         currentTimetableId = id;
         applyTimetable(tt);
@@ -2635,8 +2720,8 @@
           applyTimetable(cur);
         } else if (timetables.length === 0) {
           const id = generateTimetableId();
-const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, updatedAt: Date.now() };
-        timetables.push(tt);
+          const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
+          timetables.push(tt);
           currentTimetableId = id;
           applyTimetable(tt);
         } else {
