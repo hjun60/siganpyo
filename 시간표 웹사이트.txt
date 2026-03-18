@@ -1,8 +1,23 @@
 https://stalwart-otter-04c61d.netlify.app
 
-다음에 파일 수정 후 업데이트하려면:
+앞으로 수정할 때 하는 순서 (매번 같은 패턴)
+1. 시간표 수정
 
-app.netlify.com/drop 접속
-수정된 시간표 폴더를 다시 드래그 앤 드롭
-그러면 같은 주소로 자동 업데이트됩니다.
+c:\Users\user\Desktop\시간표\index.html 파일을 고치고 저장
 
+2. GitHub Desktop에서 커밋
+
+GitHub Desktop 열기
+오른쪽에 바뀐 파일(index.html)이 보일 거예요.
+왼쪽 아래 Summary 칸에 예: 수요일 수업 수정 같이 한 줄 적기
+Commit to master 버튼 클릭
+
+3. GitHub로 올리기 (Push)
+커밋을 하고 나면, GitHub Desktop 윗부분에 Push origin 버튼이 생겨요.
+그걸 클릭
+
+4. Netlify가 자동으로 배포
+
+1~2분 정도 기다린 뒤
+https://stalwart-otter-04c61d.netlify.app 새로고침하면
+방금 수정한 내용으로 바뀌어 있어요.
