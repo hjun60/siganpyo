@@ -1,6 +1,6 @@
 {
-  "name": "Luna 시간표",
-  "short_name": "Luna 시간표",
+  "name": "Luna's 시간표",
+  "short_name": "Luna's 시간표",
   "description": "Luna의 방과 후 시간표 앱",
   "start_url": "/",
   "display": "standalone",
