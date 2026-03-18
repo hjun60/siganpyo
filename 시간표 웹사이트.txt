@@ -1,0 +1,8 @@
+https://stalwart-otter-04c61d.netlify.app
+
+다음에 파일 수정 후 업데이트하려면:
+
+app.netlify.com/drop 접속
+수정된 시간표 폴더를 다시 드래그 앤 드롭
+그러면 같은 주소로 자동 업데이트됩니다.
+
