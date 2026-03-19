@@ -17,35 +17,38 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
     <style>
       :root {
         --print-width-cm: 8.7;
         --print-height-cm: 5.5;
-        /* 아이콘 그라디언트 색상 */
-        --grad-start:  #10b981;
-        --grad-mid:    #3b82f6;
-        --grad-end:    #38bdf8;
-        /* iOS 디자인 토큰 */
-        --bg:        #eef7f4;
-        --card:      #FFFFFF;
-        --fill:      rgba(16,185,129,0.08);
-        --fill2:     rgba(59,130,246,0.13);
-        --separator: rgba(59,130,246,0.15);
-        --label:     #0f172a;
-        --secondary: #64748b;
-        --blue:      #3b82f6;
-        --green:     #10b981;
-        --red:       #FF3B30;
-        --purple:    #AF52DE;
-        --orange:    #FF9500;
-        --radius-sm: 10px;
-        --radius-md: 13px;
-        --radius-lg: 18px;
-        --shadow-xs: 0 1px 4px rgba(0,0,0,0.07);
-        --shadow-sm: 0 2px 10px rgba(0,0,0,0.08);
-        --shadow-md: 0 8px 30px rgba(0,0,0,0.10);
-        --shadow-lg: 0 24px 60px rgba(0,0,0,0.14);
+        /* 뮤트톤 컬러 (Muted) */
+        --grad-start:  #6B9B8A;
+        --grad-mid:    #6B8DD6;
+        --grad-end:    #7BA8C4;
+        /* Soft UI / Glassmorphism 토큰 */
+        --bg:        #F9F9FB;
+        --card:      rgba(255,255,255,0.85);
+        --fill:      rgba(107,141,214,0.06);
+        --fill2:     rgba(107,141,214,0.10);
+        --separator: rgba(0,0,0,0.06);
+        --label:     #1a1d24;
+        --secondary: #6b7280;
+        --blue:      #6B8DD6;
+        --green:     #5a9a76;
+        --red:       #c75c5c;
+        --purple:    #9b7bb5;
+        --orange:    #c9945a;
+        /* 부드러운 그림자 (Soft shadow) */
+        --radius-sm: 12px;
+        --radius-md: 16px;
+        --radius-lg: 20px;
+        --shadow-xs: 0 1px 3px rgba(0,0,0,0.04);
+        --shadow-soft: 0 4px 12px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+        --shadow-sm: 0 4px 12px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+        --shadow-md: 0 12px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+        --shadow-lg: 0 24px 60px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.05);
         /* 하위 호환 */
         --border:  var(--separator);
         --muted:   var(--secondary);
@@ -55,9 +58,10 @@
       * { box-sizing: border-box; margin: 0; padding: 0; }
 
       body {
-        font-family: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-        font-weight: 300;
-        background: linear-gradient(135deg, #e0f7f0 0%, #e8f0fe 50%, #e0f2fe 100%);
+        font-family: "Pretendard", "Inter", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        background: #F5F5F7;
         background-attachment: fixed;
         color: var(--label);
         height: 100vh;
@@ -73,24 +77,23 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 20px;
-        background: linear-gradient(90deg, #48C4BE 0%, #42BCC6 55%, #50C8D2 100%);
+        background: linear-gradient(90deg, rgba(107,141,214,0.92) 0%, rgba(123,168,196,0.9) 100%);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-bottom: none;
-        box-shadow: 0 2px 20px rgba(66,188,198,0.35);
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
         flex-shrink: 0;
         gap: 10px;
         flex-wrap: wrap;
       }
       .topbar-title {
-        font-size: 24px;
-        font-weight: 400;
-        letter-spacing: 0.3px;
-        color: #ffffff;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.22);
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--label);
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 8px;
       }
             .topbar-title::before {
         content: "";
@@ -101,14 +104,13 @@
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        mix-blend-mode: lighten;
                 flex-shrink: 0;
       }
       .version-badge {
         font-size: 11px;
-        font-weight: 600;
-        color: rgba(0,0,0,0.45);
-        letter-spacing: 0.02em;
+        font-weight: 500;
+        color: var(--secondary);
+        letter-spacing: -0.01em;
         align-self: flex-end;
         margin-bottom: 2px;
         margin-left: 2px;
@@ -119,48 +121,61 @@
         align-items: center;
         flex-wrap: wrap;
       }
+      /* Ghost 스타일: 배경 없음, 테두리만 */
+      .topbar button {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.5);
+        color: #fff;
+      }
+      .topbar button:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.7); }
+      .topbar button.primary { background: rgba(255,255,255,0.95); color: var(--blue); border-color: transparent; }
+      .topbar button.primary:hover { background: #fff; }
+      .topbar button.save { background: var(--green); border-color: transparent; color: #fff; }
+      .topbar button.save:hover { background: #4d8a67; border-color: transparent; }
+      .topbar button.pdf-btn { background: var(--red); border-color: transparent; color: #fff; }
       .size-group {
         display: flex;
         align-items: center;
         gap: 5px;
-        background: rgba(255,255,255,0.18);
-        border: 1px solid rgba(255,255,255,0.32);
-        border-radius: 12px;
+        background: rgba(0,0,0,0.04);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: var(--radius-md);
         padding: 5px 10px;
       }
       .size-group-label {
         font-size: 11px;
-        font-weight: 700;
-        color: rgba(255,255,255,0.88);
+        font-weight: 600;
+        color: var(--secondary);
         white-space: nowrap;
         padding-right: 4px;
-        border-right: 1px solid rgba(255,255,255,0.28);
+        border-right: 1px solid rgba(0,0,0,0.08);
         margin-right: 2px;
       }
       .size-field {
         display: flex;
         align-items: center;
         gap: 3px;
-        background: rgba(255,255,255,0.22);
-        border-radius: 8px;
+        background: rgba(255,255,255,0.8);
+        border-radius: var(--radius-sm);
         padding: 3px 8px;
-        border: 1px solid rgba(255,255,255,0.35);
+        border: 1px solid rgba(0,0,0,0.06);
         cursor: text;
       }
       .size-field:hover {
-        background: rgba(255,255,255,0.32);
-        border-color: rgba(255,255,255,0.55);
+        background: #fff;
+        border-color: rgba(0,0,0,0.1);
       }
       .size-label {
         font-size: 11px;
-        font-weight: 700;
-        color: rgba(255,255,255,0.82);
+        font-weight: 600;
+        color: var(--secondary);
         white-space: nowrap;
       }
       .size-unit {
         font-size: 11px;
         font-weight: 500;
-        color: rgba(255,255,255,0.7);
+        color: var(--secondary);
+        opacity: 0.9;
       }
       .size-field input {
         width: 36px;
@@ -168,8 +183,8 @@
         border: none;
         background: transparent;
         font-size: 13px;
-        font-weight: 700;
-        color: #ffffff;
+        font-weight: 600;
+        color: var(--label);
         text-align: center;
         outline: none;
         cursor: text;
@@ -307,18 +322,21 @@
         flex-direction: column;
         gap: 12px;
         scrollbar-width: thin;
-        scrollbar-color: rgba(59,130,246,0.2) transparent;
-        background: rgba(255,255,255,0.45);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        scrollbar-color: rgba(0,0,0,0.08) transparent;
+        background: rgba(255,255,255,0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.6);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
       }
       .editor-hint {
         font-size: 11.5px;
         color: var(--secondary);
-        padding: 10px 14px;
-        background: var(--card);
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.8);
         border-radius: var(--radius-md);
-        box-shadow: var(--shadow-xs);
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(255,255,255,0.7);
         line-height: 1.65;
       }
       .timetable-list-row {
@@ -365,8 +383,8 @@
       }
       .timetable-item:hover { background: var(--fill2); }
       .timetable-item.current {
-        background: rgba(0,122,255,0.12);
-        border: 1px solid rgba(0,122,255,0.3);
+        background: var(--fill2);
+        border: 1px solid rgba(91,127,209,0.35);
       }
       .timetable-item-name {
         flex: 1;
@@ -399,11 +417,11 @@
       }
       .timetable-item-btn:hover {
         color: var(--blue);
-        background: rgba(0,122,255,0.1);
+        background: var(--fill2);
       }
       .timetable-item-btn.delete:hover {
         color: var(--red);
-        background: rgba(255,59,48,0.1);
+        background: rgba(199,92,92,0.12);
       }
       .timetable-item-btn:active { opacity: 0.7; }
 
@@ -450,8 +468,8 @@
         gap: 4px;
       }
       .slot-btn {
-        border: 1.5px solid rgba(59,130,246,0.25);
-        background: rgba(255,255,255,0.5);
+        border: 1px solid rgba(91,127,209,0.25);
+        background: rgba(255,255,255,0.6);
         color: var(--secondary);
         border-radius: 980px;
         padding: 4px 10px;
@@ -459,13 +477,12 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.15s;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
+        letter-spacing: -0.02em;
       }
       .slot-btn:hover {
         border-color: var(--blue);
         color: var(--blue);
-        background: rgba(59,130,246,0.08);
+        background: var(--fill2);
       }
       .slot-btn.selected {
         background: linear-gradient(90deg, var(--grad-start), var(--grad-mid));
@@ -473,10 +490,10 @@
         border-color: transparent;
       }
       .display-range-sel {
-        border: 1.5px solid rgba(59,130,246,0.25);
+        border: 1px solid rgba(91,127,209,0.25);
         background: rgba(255,255,255,0.7);
         color: var(--label);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         padding: 4px 6px;
         font-size: 12px;
         font-weight: 600;
@@ -504,22 +521,21 @@
         font-size: 13px;
         font-weight: 700;
         padding: 7px 4px;
-        background: var(--blue);
-        color: #fff;
-        border-radius: var(--radius-sm);
-        letter-spacing: 0.04em;
+        background: transparent;
+        color: #4a4a4f;
+        letter-spacing: -0.02em;
       }
 
       /* ── 이벤트 카드 ── */
       .event-card {
         border: none;
-        border-left: 3.5px solid #ccc;
-        border-radius: var(--radius-md);
-        padding: 9px 10px 10px;
+        border-radius: 16px;
+        padding: 10px 12px 12px;
         display: flex;
         flex-direction: column;
         gap: 7px;
-        box-shadow: var(--shadow-xs);
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         color: #000;
         min-width: 0;
         overflow-x: auto;
@@ -550,61 +566,104 @@
       }
       .drag-handle:hover { color: rgba(0,0,0,0.5); background: rgba(0,0,0,0.06); }
       .drag-handle:active { cursor: grabbing; }
-      .event-card .card-field label { color: #333; }
+      .event-card .card-field label { color: #1D1D1F; }
       .event-card .card-field input,
       .event-card .time-select {
-        background: rgba(0,0,0,0.06);
-        color: #000;
+        background: #F2F2F7;
+        color: #1D1D1F;
       }
+      .event-card .card-field--title input { font-weight: 700; }
+      .event-card .card-field:not(.card-field--title) input,
+      .event-card .time-select { font-weight: 400; }
       .event-card .card-field input::placeholder { color: rgba(0,0,0,0.4); }
       .card-top {
         display: flex;
-        justify-content: flex-start;
-        align-items: flex-start;
+        flex-direction: column;
+        gap: 0;
+        min-width: 0;
+      }
+      .card-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         gap: 4px;
         min-width: 0;
       }
+      .card-actions { align-self: flex-end; }
+      .color-swatches-row {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(-8px);
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out, transform 0.3s ease-out;
+      }
+      .event-card:hover .color-swatches-row,
+      .event-card:focus-within .color-swatches-row {
+        max-height: 50px;
+        opacity: 1;
+        transform: translateY(0);
+      }
       .color-swatches {
-        display: grid;
-        grid-template-columns: repeat(14, 14px);
-        gap: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-top: 6px;
       }
       .swatch {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         cursor: pointer;
-        border: 2px solid transparent;
+        border: 1.5px solid transparent;
         flex-shrink: 0;
-        transition: transform 0.12s;
+        transition: all 0.2s ease;
+        position: relative;
       }
-      .swatch:hover { transform: scale(1.35); }
+      .swatch:hover { transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
       .swatch.selected {
-        border-color: rgba(0,0,0,0.35);
-        transform: scale(1.25);
-        outline: 1.5px solid #fff;
-        outline-offset: -3px;
+        border-color: rgba(0,0,0,0.25);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+      .swatch.selected::after {
+        content: "✓";
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 800;
+        color: rgba(0,0,0,0.5);
       }
       .del-btn {
         border: none;
         background: none;
         color: var(--secondary);
-        font-size: 16px;
+        font-size: 11px;
+        font-weight: 500;
         cursor: pointer;
-        padding: 1px 3px;
+        padding: 2px 6px;
         line-height: 1;
         border-radius: 6px;
         flex-shrink: 0;
-        transition: color 0.12s, background 0.12s;
+        opacity: 0;
+        transition: color 0.12s, background 0.12s, opacity 0.2s;
       }
+      .event-card:hover .del-btn,
+      .event-card:focus-within .del-btn { opacity: 1; }
       .del-btn:hover { color: var(--red); background: rgba(255,59,48,0.08); }
       .card-actions {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
         flex-shrink: 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+        align-self: flex-end;
       }
+      .event-card:hover .card-actions,
+      .event-card:focus-within .card-actions { opacity: 1; }
       .copy-btn {
         border: none;
         background: rgba(0,122,255,0.1);
@@ -612,13 +671,17 @@
         font-size: 10px;
         font-weight: 600;
         cursor: pointer;
-        padding: 2px 4px;
+        padding: 2px 6px;
         line-height: 1;
         border-radius: 4px;
         letter-spacing: -0.02em;
         transition: background 0.12s, color 0.12s;
         width: fit-content;
+        opacity: 0;
+        transition: opacity 0.2s, background 0.12s, color 0.12s;
       }
+      .event-card:hover .copy-btn,
+      .event-card:focus-within .copy-btn { opacity: 1; }
       .copy-btn:hover { background: rgba(0,122,255,0.2); color: #007aff; }
 
       .card-field {
@@ -641,7 +704,7 @@
         border-radius: 7px;
         padding: 5px 9px;
         font-size: 12px;
-        background: var(--fill);
+        background: #F2F2F7;
         min-width: 0;
         color: var(--label);
         transition: background 0.15s, box-shadow 0.15s;
@@ -649,8 +712,8 @@
       }
       .card-field input:focus {
         outline: none;
-        background: rgba(0,122,255,0.07);
-        box-shadow: inset 0 0 0 1.5px var(--blue);
+        background: #F2F2F7;
+        box-shadow: 0 0 0 2px var(--blue);
       }
       .card-field input::placeholder { color: rgba(60,60,67,0.3); font-size: 11px; }
 
@@ -668,18 +731,18 @@
         border-radius: 7px;
         padding: 5px 3px;
         font-size: 11px;
-        background: var(--fill);
+        background: #F2F2F7;
         cursor: pointer;
         min-width: 0;
         color: var(--label);
         appearance: auto;
         font-family: inherit;
-        transition: background 0.15s;
+        transition: background 0.15s, box-shadow 0.15s;
       }
       .time-select:focus {
         outline: none;
-        background: rgba(0,122,255,0.07);
-        box-shadow: inset 0 0 0 1.5px var(--blue);
+        background: #F2F2F7;
+        box-shadow: 0 0 0 2px var(--blue);
       }
       .time-sep {
         font-size: 12px;
@@ -690,8 +753,8 @@
 
       .add-btn {
         width: 100%;
-        border: 1.5px dashed rgba(0,122,255,0.3);
-        background: rgba(0,122,255,0.04);
+        border: none;
+        background: rgba(107,141,214,0.12);
         border-radius: var(--radius-sm);
         padding: 8px;
         font-size: 12.5px;
@@ -699,12 +762,11 @@
         color: var(--blue);
         cursor: pointer;
         text-align: center;
-        transition: background 0.15s, border-color 0.15s;
+        transition: background 0.15s;
         letter-spacing: -0.1px;
       }
       .add-btn:hover {
-        background: rgba(0,122,255,0.09);
-        border-color: rgba(0,122,255,0.55);
+        background: rgba(107,141,214,0.20);
       }
       .add-row {
         display: flex;
@@ -757,39 +819,46 @@
         flex-shrink: 0;
       }
 
-      /* ── 오른쪽: 미리보기 ── */
+      /* ── 오른쪽: 미리보기 (플로팅 위젯 카드) ── */
       .preview-panel {
-        width: calc(var(--print-width-cm) * 1cm + 52px);
-        min-width: 200px;
+        width: calc(var(--print-width-cm) * 1cm + 80px);
+        min-width: 220px;
         flex-shrink: 0;
-        border-left: 1px solid rgba(59,130,246,0.12);
-        background: rgba(255,255,255,0.35);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 16px 14px;
-        gap: 10px;
+        justify-content: flex-start;
+        padding: 28px 24px;
+        gap: 16px;
         overflow-y: auto;
+        /* 플로팅 영역: 배경에서 살짝 띄워진 위젯 느낌 */
+        margin: 16px 20px 16px 12px;
+        border-radius: var(--radius-lg);
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.8);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.04);
       }
       .preview-label-row {
         width: 100%;
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        font-size: 11px;
+        font-size: 12px;
         color: var(--secondary);
         font-weight: 600;
-        letter-spacing: -0.1px;
+        letter-spacing: -0.02em;
       }
+      .preview-label-row b { color: var(--label); font-weight: 700; }
       .preview-label-row span { font-weight: 400; }
       .sheet-frame {
+        /* 인쇄 결과물이 돋보이도록 카드 안에 여유 공간 */
         border: none;
-        border-radius: 10px;
-        background: var(--card);
-        padding: 4px;
-        box-shadow: var(--shadow-md);
+        border-radius: var(--radius-md);
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.03);
       }
       .sheet {
         width: calc(var(--print-width-cm) * 1cm);
@@ -928,35 +997,33 @@
         line-height: 1.15;
       }
 
-      /* ── 색상 (파스텔톤) ── */
-      .bg-lunch        { background: #f1f5f9; }
-      .bg-period       { background: #e2e8f0; }
-      .bg-fit          { background: #fef9c3; }
-      .bg-jump         { background: #7dd3fc; }
-      .bg-ceramic      { background: #fde68a; }
-      .bg-wise         { background: #f9a8d4; color: #000; }
-      .bg-sci          { background: #bbf7d0; }
-      .bg-chess        { background: #a5b4fc; }
-      .bg-red-light    { background: #ffe4e6; }
-      .bg-red          { background: #fecdd3; }
-      .bg-orange-light { background: #fed7aa; }
-      .bg-amber        { background: #fef08a; }
-      .bg-lime         { background: #d9f99d; }
-      .bg-teal         { background: #99f6e4; }
-      .bg-sky          { background: #bae6fd; }
-      .bg-indigo       { background: #c7d2fe; }
-      .bg-purple-light { background: #e9d5ff; }
-      .bg-purple       { background: #ddd6fe; }
-      .bg-pink-light   { background: #fce7f3; }
-      .bg-brown-light  { background: #f5e6d3; }
-      .bg-rose         { background: #fda4af; }
-      .bg-coral        { background: #fdba74; }
-      .bg-mint         { background: #a7f3d0; }
-      .bg-periwinkle   { background: #c4b5fd; }
-      .bg-dark-gray    { background: #94a3b8; color: #fff; }
-      .bg-dark-blue    { background: #93c5fd; color: #1e293b; }
-      .bg-dark-green   { background: #86efac; color: #14532d; }
-      .bg-none         { background: #ffffff; border: 0.3mm solid #eee; }
+      /* ── 색상 (iPhone 파스텔 뮤트톤 16색) ── */
+      .bg-grey     { background: #F5F5F7; border: 0.3mm solid #e5e5ea; }
+      .bg-pink     { background: #FFEBEE; }
+      .bg-sage     { background: #E8F5E9; }
+      .bg-sky      { background: #E3F2FD; }
+      .bg-cream    { background: #FFFDE7; }
+      .bg-lavender { background: #F3E5F5; }
+      .bg-peach    { background: #FFE5E0; }
+      .bg-mint     { background: #E0F2F1; }
+      .bg-orange   { background: #FFF3E0; }
+      .bg-powder   { background: #E1F5FE; }
+      .bg-rose     { background: #FCE4EC; }
+      .bg-beige    { background: #FDF5E6; }
+      .bg-indigo   { background: #E8EAF6; }
+      .bg-lilac    { background: #EDE7F6; }
+      .bg-aqua     { background: #E0F7FA; }
+      .bg-gold     { background: #FFF8E1; }
+      /* 하위 호환 alias */
+      .bg-none     { background: #F5F5F7; border: 0.3mm solid #e5e5ea; }
+      .bg-lunch    { background: #F5F5F7; }
+      .bg-period   { background: #F5F5F7; }
+      .bg-fit      { background: #FFFDE7; }
+      .bg-jump     { background: #E3F2FD; }
+      .bg-ceramic  { background: #FFF3E0; }
+      .bg-wise     { background: #F3E5F5; }
+      .bg-sci      { background: #E8F5E9; }
+      .bg-chess    { background: #EDE7F6; }
 
       /* ── 미리보기 클릭 커서 ── */
       .sheet-frame {
@@ -1252,8 +1319,8 @@
         justify-content: center;
         overflow: auto;
         padding: 20px;
-        background: var(--bg);
-        border-radius: 14px;
+        background: rgba(249,249,251,0.6);
+        border-radius: var(--radius-md);
         min-height: 120px;
       }
       .modal-sheet-inner {
@@ -1263,8 +1330,8 @@
       .modal-sheet-inner .sheet {
         transform-origin: top left;
         overflow: hidden;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.16);
-        border-radius: 8px;
+        box-shadow: var(--shadow-md);
+        border-radius: var(--radius-sm);
       }
       .modal-pinch-hint {
         display: none;
@@ -1310,7 +1377,7 @@
           flex-wrap: nowrap;
           overflow-x: auto;
         }
-        .topbar-title { font-size: 17px; white-space: nowrap; color: #fff; }
+        .topbar-title { font-size: 17px; white-space: nowrap; }
         .topbar-right {
           gap: 4px;
           flex-wrap: nowrap;
@@ -1324,7 +1391,7 @@
         .size-field { display: none; }
         .size-group { display: none; }
 
-        .main { flex-direction: column; }
+        .main { flex-direction: column; padding: 12px; }
 
         /* 에디터 패널: 모바일에서 전체 너비 */
         .editor-panel {
@@ -1335,12 +1402,13 @@
           max-height: 55vh;
         }
 
-        /* 미리보기 패널: 아래쪽에 작게 */
+        /* 미리보기 패널: 플로팅 위젯 (모바일) */
         .preview-panel {
           width: 100%;
           flex-shrink: 0;
           border-left: none;
-          padding: 10px 10px;
+          padding: 20px 16px 24px;
+          margin: 0 4px 8px;
         }
 
         /* 카드 폰트 살짝 축소 */
@@ -1429,8 +1497,10 @@
       .bottom-sheet {
         width: 100%;
         max-height: 92vh;
-        background: #fff;
-        border-radius: 24px 24px 0 0;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px 20px 0 0;
         overflow-y: auto;
         transform: translateY(100%);
         transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
@@ -1489,14 +1559,15 @@
         aspect-ratio: 1;
         border-radius: 50%;
         cursor: pointer;
-        border: 2.5px solid transparent;
-        transition: transform 0.15s, border-color 0.15s;
+        border: 1.5px solid rgba(0,0,0,0.08);
+        transition: transform 0.15s, box-shadow 0.15s;
         box-sizing: border-box;
       }
+      .bs-swatch:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
       .bs-swatch.selected {
-        border-color: #3b82f6;
-        transform: scale(1.18);
-        box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+        border-color: var(--blue);
+        box-shadow: 0 0 0 2px rgba(107,141,214,0.35);
+        transform: scale(1.12);
       }
       .bs-field {
         display: flex;
@@ -1882,38 +1953,45 @@
         return result;
       }
 
+      /* iPhone 파스텔 뮤트톤 16색 (채도 낮음, 명도 높음) + 하위 호환 alias */
+      const MAIN_COLOR_KEYS = ["bg-grey","bg-pink","bg-sage","bg-sky","bg-cream","bg-lavender","bg-peach","bg-mint","bg-orange","bg-powder","bg-rose","bg-beige","bg-indigo","bg-lilac","bg-aqua","bg-gold"];
       const COLORS = [
-        // 1행 (14개) - 파스텔톤
-        { key: "bg-none",         hex: "#ffffff", label: "없음",    dark: false },
-        { key: "bg-lunch",        hex: "#f1f5f9", label: "스노우",  dark: false },
-        { key: "bg-period",       hex: "#e2e8f0", label: "연 slate", dark: false },
-        { key: "bg-red-light",    hex: "#ffe4e6", label: "로즈워터", dark: false },
-        { key: "bg-red",          hex: "#fecdd3", label: "블러셔",  dark: false },
-        { key: "bg-wise",         hex: "#f9a8d4", label: "파스텔핑크", dark: true  },
-        { key: "bg-pink-light",   hex: "#fce7f3", label: "솜사탕",  dark: false },
-        { key: "bg-orange-light", hex: "#fed7aa", label: "피치",   dark: false },
-        { key: "bg-ceramic",      hex: "#fde68a", label: "레몬쉬프트", dark: false },
-        { key: "bg-amber",        hex: "#fef08a", label: "버터",   dark: false },
-        { key: "bg-fit",          hex: "#fef9c3", label: "바닐라",  dark: false },
-        { key: "bg-lime",         hex: "#d9f99d", label: "라임쉬프트", dark: false },
-        { key: "bg-sci",          hex: "#bbf7d0", label: "세이지",  dark: false },
-        { key: "bg-teal",         hex: "#99f6e4", label: "민트",    dark: false },
-        // 2행 (14개)
-        { key: "bg-sky",          hex: "#bae6fd", label: "스카이블루", dark: false },
-        { key: "bg-jump",         hex: "#7dd3fc", label: "아이스블루", dark: false },
-        { key: "bg-chess",        hex: "#a5b4fc", label: "퍼플헤이즈", dark: false },
-        { key: "bg-indigo",       hex: "#c7d2fe", label: "라벤더",  dark: false },
-        { key: "bg-purple-light", hex: "#e9d5ff", label: "릴락",   dark: false },
-        { key: "bg-purple",       hex: "#ddd6fe", label: "퍼플드림",  dark: false },
-        { key: "bg-brown-light",  hex: "#f5e6d3", label: "샌드",   dark: false },
-        { key: "bg-dark-gray",    hex: "#94a3b8", label: "스톤",   dark: true  },
-        { key: "bg-dark-green",   hex: "#86efac", label: "그린티",  dark: false },
-        { key: "bg-dark-blue",    hex: "#93c5fd", label: "코발트",  dark: false },
-        { key: "bg-rose",         hex: "#fda4af", label: "스우트피크", dark: false },
-        { key: "bg-coral",        hex: "#fdba74", label: "코랄",   dark: false },
-        { key: "bg-mint",         hex: "#a7f3d0", label: "스피어민트", dark: false },
-        { key: "bg-periwinkle",   hex: "#c4b5fd", label: "페리윙클",  dark: false },
+        { key: "bg-grey",    hex: "#F5F5F7", label: "쿨 그레이", dark: false },
+        { key: "bg-pink",    hex: "#FFEBEE", label: "소프트 핑크", dark: false },
+        { key: "bg-sage",    hex: "#E8F5E9", label: "세이지 그린", dark: false },
+        { key: "bg-sky",     hex: "#E3F2FD", label: "스카이 블루", dark: false },
+        { key: "bg-cream",   hex: "#FFFDE7", label: "크리미 옐로우", dark: false },
+        { key: "bg-lavender", hex: "#F3E5F5", label: "라벤더", dark: false },
+        { key: "bg-peach",   hex: "#FFE5E0", label: "소프트 피치", dark: false },
+        { key: "bg-mint",    hex: "#E0F2F1", label: "민트", dark: false },
+        { key: "bg-orange",  hex: "#FFF3E0", label: "소프트 오렌지", dark: false },
+        { key: "bg-powder",  hex: "#E1F5FE", label: "파우더 블루", dark: false },
+        { key: "bg-rose",    hex: "#FCE4EC", label: "소프트 로즈", dark: false },
+        { key: "bg-beige",   hex: "#FDF5E6", label: "웜 베이지", dark: false },
+        { key: "bg-indigo",  hex: "#E8EAF6", label: "아이스 인디고", dark: false },
+        { key: "bg-lilac",   hex: "#EDE7F6", label: "소프트 라일락", dark: false },
+        { key: "bg-aqua",    hex: "#E0F7FA", label: "펄 아쿠아", dark: false },
+        { key: "bg-gold",    hex: "#FFF8E1", label: "소프트 골드", dark: false },
+        /* 하위 호환 (기존 저장 데이터) */
+        { key: "bg-none",   hex: "#F5F5F7", label: "기본", dark: false },
+        { key: "bg-lunch",  hex: "#F5F5F7", label: "기본", dark: false },
+        { key: "bg-period", hex: "#F5F5F7", label: "기본", dark: false },
+        { key: "bg-fit",    hex: "#FFFDE7", label: "크리미 옐로우", dark: false },
+        { key: "bg-jump",   hex: "#E3F2FD", label: "스카이 블루", dark: false },
+        { key: "bg-ceramic", hex: "#FFF3E0", label: "소프트 오렌지", dark: false },
+        { key: "bg-wise",   hex: "#F3E5F5", label: "라벤더", dark: false },
+        { key: "bg-sci",    hex: "#E8F5E9", label: "세이지 그린", dark: false },
+        { key: "bg-chess",  hex: "#EDE7F6", label: "소프트 라일락", dark: false },
       ];
+      const PASTEL_LIGHT = new Set(["#F5F5F7","#FFEBEE","#E8F5E9","#E3F2FD","#FFFDE7","#F3E5F5","#FFE5E0","#E0F2F1","#FFF3E0","#E1F5FE","#FCE4EC","#FDF5E6","#E8EAF6","#EDE7F6","#E0F7FA","#FFF8E1"]);
+      function hexToTint(hex, pct) {
+        const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+        if (!m) return hex;
+        const r = Math.round(parseInt(m[1],16) * pct/100 + 255 * (1-pct/100));
+        const g = Math.round(parseInt(m[2],16) * pct/100 + 255 * (1-pct/100));
+        const b = Math.round(parseInt(m[3],16) * pct/100 + 255 * (1-pct/100));
+        return `rgb(${r},${g},${b})`;
+      }
 
       /* ── 초기 데이터 ── */
       function defaultEvents() {
@@ -2075,13 +2153,13 @@
       }
 
       function buildCard(e) {
-        const colorInfo = COLORS.find((c) => c.key === e.color) || COLORS[1];
+        const colorInfo = COLORS.find((c) => c.key === e.color) || COLORS[0];
 
         const card = document.createElement("div");
         card.className = "event-card";
         card.dataset.eventId = e.id;
-        card.style.background = colorInfo.hex;
-        card.style.borderLeftColor = colorInfo.hex === "#ffffff" ? "#ccc" : colorInfo.hex;
+        card.style.background = hexToTint(colorInfo.hex, 35);
+        card.style.borderLeftColor = colorInfo.hex;
 
         /* 드래그 핸들 */
         const handle = document.createElement("div");
@@ -2090,38 +2168,15 @@
         handle.textContent = "≡";
         card.appendChild(handle);
 
-        /* 상단: 색상 선택 + 삭제 */
+        /* 상단: 삭제/복사(우측) + 색상 선택(호버 시) */
         const top = document.createElement("div");
         top.className = "card-top";
-
-        const swatches = document.createElement("div");
-        swatches.className = "color-swatches";
-        COLORS.forEach((c) => {
-          const sw = document.createElement("div");
-          sw.className = "swatch" + (c.key === e.color ? " selected" : "");
-          sw.style.background = c.hex;
-          const isSelected = c.key === e.color;
-          sw.style.border = "2px solid " + (isSelected ? (c.dark ? "#fff" : "#333") : (c.hex === "#ffffff" ? "#ccc" : "transparent"));
-          if (isSelected && c.dark) sw.style.outlineColor = "#333";
-          sw.title = c.label;
-          sw.addEventListener("click", () => {
-            const idx = events.findIndex((x) => x.id === e.id);
-            if (idx < 0) return;
-            pushUndoState();
-            events[idx].color = c.key;
-            markDirty();
-            renderEditor();
-            renderPreview();
-          });
-          swatches.appendChild(sw);
-        });
-        top.appendChild(swatches);
 
         const actions = document.createElement("div");
         actions.className = "card-actions";
         const del = document.createElement("button");
         del.className = "del-btn";
-        del.textContent = "×";
+        del.textContent = "삭제";
         del.title = "삭제";
         del.addEventListener("click", () => {
           pushUndoState();
@@ -2144,13 +2199,40 @@
         actions.appendChild(del);
         actions.appendChild(copyBtn);
         top.appendChild(actions);
+
+        const swatchRow = document.createElement("div");
+        swatchRow.className = "color-swatches-row";
+        const swatches = document.createElement("div");
+        swatches.className = "color-swatches";
+        const mainColors = COLORS.filter((c) => ["bg-grey","bg-pink","bg-sage","bg-sky","bg-cream","bg-lavender","bg-peach","bg-mint","bg-orange","bg-powder","bg-rose","bg-beige","bg-indigo","bg-lilac","bg-aqua","bg-gold"].includes(c.key));
+        mainColors.forEach((c) => {
+          const sw = document.createElement("div");
+          sw.className = "swatch" + (c.key === e.color || c.hex === colorInfo.hex ? " selected" : "");
+          sw.style.background = c.hex;
+          if (c.hex === "#F5F5F7") sw.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.08)";
+          sw.title = c.label;
+          sw.addEventListener("click", (ev) => ev.stopPropagation());
+          sw.addEventListener("mousedown", (ev) => {
+            ev.preventDefault();
+            const idx = events.findIndex((x) => x.id === e.id);
+            if (idx < 0) return;
+            pushUndoState();
+            events[idx].color = c.key;
+            markDirty();
+            renderEditor();
+            renderPreview();
+          });
+          swatches.appendChild(sw);
+        });
+        swatchRow.appendChild(swatches);
+        top.appendChild(swatchRow);
         card.appendChild(top);
 
         /* 입력 필드: 제목 / 교실 */
-        ["제목|name|예) 역사놀이", "교실|place|예) 맞춤형2실"].forEach((spec) => {
+        ["제목|name|예) 역사놀이", "교실|place|예) 맞춤형2실"].forEach((spec, idx) => {
           const [label, field, placeholder] = spec.split("|");
           const row = document.createElement("div");
-          row.className = "card-field";
+          row.className = "card-field" + (idx === 0 ? " card-field--title" : "");
           const lbl = document.createElement("label");
           lbl.textContent = label;
           row.appendChild(lbl);
@@ -3545,11 +3627,13 @@
         // 색상 스와치 렌더링
         const colorsEl = document.getElementById("bsColors");
         colorsEl.innerHTML = "";
-        COLORS.forEach(c => {
+        const mainColors = COLORS.filter((c) => ["bg-grey","bg-pink","bg-sage","bg-sky","bg-cream","bg-lavender","bg-peach","bg-mint","bg-orange","bg-powder","bg-rose","bg-beige","bg-indigo","bg-lilac","bg-aqua","bg-gold"].includes(c.key));
+        const bsColorInfo = COLORS.find(c => c.key === bsColor) || COLORS[0];
+        mainColors.forEach(c => {
           const sw = document.createElement("div");
-          sw.className = "bs-swatch" + (c.key === bsColor ? " selected" : "");
+          sw.className = "bs-swatch" + (c.key === bsColor || c.hex === bsColorInfo.hex ? " selected" : "");
           sw.style.background = c.hex;
-          if (c.hex === "#ffffff") sw.style.boxShadow = "inset 0 0 0 1px #d1d5db";
+          if (c.hex === "#ffffff" || c.hex === "#F5F5F7") sw.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.08)";
           sw.addEventListener("click", () => {
             bsColor = c.key;
             colorsEl.querySelectorAll(".bs-swatch").forEach(s => s.classList.remove("selected"));
