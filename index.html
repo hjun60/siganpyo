@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -1118,7 +1118,7 @@
       .import-drop-hint { font-size: 11.5px; color: var(--secondary); }
       /* 모바일에서는 드래그 안내 숨기고 탭 안내만 표시 */
       .import-drop-mobile { display: none; }
-      @media (max-width: 700px), (pointer: coarse) {
+      @media (max-width: 768px), (pointer: coarse) {
         .import-drop-desktop { display: none; }
         .import-drop-mobile { display: block; }
         .import-drop-zone {
@@ -1231,7 +1231,7 @@
       }
 
       /* ── 모바일 반응형 ── */
-      @media (max-width: 700px) {
+      @media (max-width: 768px) {
         :root { --topbar-h: 52px; }
 
         .topbar {
@@ -1252,6 +1252,7 @@
           white-space: nowrap;
         }
         .size-field { display: none; }
+        .size-group { display: none; }
 
         .main { flex-direction: column; }
 
@@ -1307,6 +1308,7 @@
         }
         .topbar, .editor-panel, .preview-panel,
         .modal-backdrop, .toast,
+        .bs-backdrop, #saveModalBackdrop, #importBackdrop,
         #pdfBtn { display: none !important; }
         .print-only {
           display: block !important;
@@ -1345,7 +1347,6 @@
         background: #fff;
         border-radius: 24px 24px 0 0;
         overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
         transform: translateY(100%);
         transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
         padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -1858,6 +1859,11 @@
       /* ── 실행 취소 (Undo) ── */
       const MAX_UNDO = 30;
       let undoHistory = [];
+      let _undoDebounceTimer = null;
+      function debouncedPushUndoState() {
+        clearTimeout(_undoDebounceTimer);
+        _undoDebounceTimer = setTimeout(() => pushUndoState(), 600);
+      }
 
       function pushUndoState(overrides) {
         if (undoHistory.length >= MAX_UNDO) undoHistory.shift();
@@ -2069,7 +2075,7 @@
           inp.addEventListener("input", () => {
             const idx = events.findIndex((x) => x.id === e.id);
             if (idx < 0) return;
-            pushUndoState();
+            debouncedPushUndoState();
             events[idx][field] = inp.value;
             markDirty();
             renderPreview();
@@ -2308,12 +2314,14 @@
         none.textContent = placeholder;
         sel.appendChild(none);
         TIME_OPTIONS.forEach((t) => {
-          const m = parseTimeToMinutes(t);
-          if (m != null && minAfter != null && m <= minAfter) return;
-          const opt = document.createElement("option");
-          opt.value = t;
-          opt.textContent = t;
-          if (t === selectedVal) opt.selected = true;
+                    const m = parseTimeToMinutes(t);
+                    if (m != null && minAfter != null && m <= minAfter) return;
+          if (m != null && m < currentDisplayStart) return;
+          if (m != null && m > currentDisplayEnd)   return;
+                    const opt = document.createElement("option");
+                    opt.value = t;
+                    opt.textContent = t;
+                    if (t === selectedVal) opt.selected = true;
           sel.appendChild(opt);
         });
         return sel;
@@ -2328,12 +2336,14 @@
         none.textContent = "종료";
         endSel.appendChild(none);
         TIME_OPTIONS.forEach((t) => {
-          const m = parseTimeToMinutes(t);
-          if (m != null && minAfter != null && m <= minAfter) return;
-          const opt = document.createElement("option");
-          opt.value = t;
-          opt.textContent = t;
-          if (t === currentEnd) opt.selected = true;
+                    const m = parseTimeToMinutes(t);
+                    if (m != null && minAfter != null && m <= minAfter) return;
+          if (m != null && m < currentDisplayStart) return;
+          if (m != null && m > currentDisplayEnd)   return;
+                    const opt = document.createElement("option");
+                    opt.value = t;
+                    opt.textContent = t;
+                    if (t === currentEnd) opt.selected = true;
           endSel.appendChild(opt);
         });
         if (!endSel.value && endSel.options.length > 1) {
@@ -2767,8 +2777,11 @@
         if (e <= s) e = s + 60;
         manualDisplayStart = s;
         manualDisplayEnd   = e;
+        currentDisplayStart = s;
+        currentDisplayEnd   = e;
         // 종료가 시작보다 작으면 자동 보정
         buildHourOptions(displayEndSel, e);
+        renderEditor();
         renderPreview();
       }
 
@@ -2779,6 +2792,7 @@
         manualDisplayStart = null;
         manualDisplayEnd   = null;
         initDisplayRangeSelectors();
+        renderEditor();
         renderPreview();
       });
 
@@ -3351,13 +3365,16 @@
         noneOpt.value = ""; noneOpt.textContent = "시작";
         startSel.appendChild(noneOpt);
         TIME_OPTIONS.forEach(t => {
+          const mm2 = parseTimeToMinutes(t);
+          if (mm2 != null && mm2 < currentDisplayStart) return;
+          if (mm2 != null && mm2 > currentDisplayEnd)   return;
           const opt = document.createElement("option");
           opt.value = t; opt.textContent = t;
           if (t === initStart) opt.selected = true;
           startSel.appendChild(opt);
         });
         updateEndTimeOptions(endSel, initStart);
-        if (initEnd) endSel.value = initEnd;
+        endSel.value = initEnd;
 
         // 삭제 버튼 표시 여부
         document.getElementById("bsDeleteBtn").style.display = eventId ? "" : "none";
@@ -3401,8 +3418,9 @@
         markDirty();
         renderEditor();
         renderPreview();
+        const wasEdit = !!bsEventId;
         closeBottomSheet();
-        showToast(bsEventId ? "수정되었습니다." : "추가되었습니다.");
+        showToast(wasEdit ? "수정되었습니다." : "추가되었습니다.");
       }
 
       function deleteFromBottomSheet() {
