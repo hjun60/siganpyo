@@ -843,7 +843,7 @@
       .tl-event {
         position: absolute;
         left: 0.5mm; right: 0.5mm;
-        border-radius: 6px;
+        border-radius: 4px;
         padding: 0.8mm 1mm;
         overflow: hidden;
         display: flex;
@@ -852,6 +852,7 @@
         gap: 0.35mm;
         align-items: center;
         box-sizing: border-box;
+        margin-top: 0.4mm;
       }
       .tl-event .l1,
       .tl-event .l2,
@@ -1229,6 +1230,39 @@
         box-shadow: 0 8px 40px rgba(0,0,0,0.16);
         border-radius: 8px;
       }
+      .modal-pinch-hint {
+        display: none;
+        text-align: center;
+        font-size: 12px;
+        color: var(--secondary);
+        padding: 4px 0 2px;
+        letter-spacing: -0.2px;
+        flex-shrink: 0;
+      }
+      /* 모바일: 모달이 화면 대부분을 차지하고, wrap이 남은 공간을 채움 */
+      @media (max-width: 768px) {
+        .modal-box {
+          width: 94vw;
+          height: 88vh;
+          padding: 16px;
+          gap: 10px;
+          display: flex;
+          flex-direction: column;
+          max-width: none;
+          max-height: none;
+          overflow: hidden;
+        }
+        .modal-sheet-wrap {
+          flex: 1;
+          min-height: 0;
+          padding: 12px;
+          overflow: auto;
+          touch-action: pan-x pan-y;
+          align-items: center;
+          justify-content: center;
+        }
+        .modal-pinch-hint { display: block; }
+      }
 
       /* ── 모바일 반응형 ── */
       @media (max-width: 768px) {
@@ -1339,6 +1373,13 @@
         align-items: flex-end;
         backdrop-filter: blur(3px);
         -webkit-backdrop-filter: blur(3px);
+      }
+      /* 바텀시트 열림 시 배경 요소 완전 클릭 차단 (iOS 이벤트 투과 방지) */
+      body.bs-open .sheet-frame,
+      body.bs-open .editor-panel,
+      body.bs-open .preview-panel,
+      body.bs-open .topbar {
+        pointer-events: none;
       }
       .bs-backdrop.open { display: flex; }
       .bottom-sheet {
@@ -1672,6 +1713,7 @@
             </div>
           </div>
         </div>
+        <div class="modal-pinch-hint" id="modalPinchHint">두 손가락으로 확대 / 축소</div>
       </div>
     </div>
 
@@ -2520,24 +2562,27 @@
 
       function drawEvents(container) {
         container.querySelectorAll(".tl-event").forEach((n) => n.remove());
+        const totalMin = currentDisplayEnd - currentDisplayStart;
+        if (totalMin <= 0) return;
         getActiveDays().forEach((d) => {
           const col = container.querySelector(`.tl-col[data-day-key="${d.key}"]`);
           if (!col) return;
           resolveDay(d.key).forEach((e) => {
+            // 표시 범위 밖 이벤트는 숨김
+            if (e._e <= currentDisplayStart || e._s >= currentDisplayEnd) return;
             const ev = document.createElement("div");
             ev.className = `tl-event ${e.color || ""}`;
             ev.innerHTML = buildLineHtml(e.name, e.place, e.time);
-            const s0 = minToSlot(e._s);
-            const s1 = minToSlot(e._e);
-            // 표시 범위 밖 이벤트는 숨김 (08:00 일정 있을 때만 08~ 표시, 없으면 12~ 표시)
-            if (s1 <= 0 || s0 >= currentSlotCount) return;
-            const topSlot = Math.max(0, s0);
-            const bottomSlot = Math.min(currentSlotCount, s1);
-            ev.style.top = `${(topSlot / currentSlotCount) * 100}%`;
-            ev.style.height = `${Math.max(1, ((bottomSlot - topSlot) / currentSlotCount) * 100)}%`;
-            const slotSpan = bottomSlot - topSlot;
-            // 40분(4슬롯) 이상은 100%, 작을수록 비례 축소 (점심시간 50분→큰 글자, 5교시 30분→축소)
-            const scale = Math.max(0.5, Math.min(1, slotSpan / 4));
+            // 실제 분 기반 정확한 비율 계산 (슬롯 반올림 없음)
+            const visStart = Math.max(currentDisplayStart, e._s);
+            const visEnd   = Math.min(currentDisplayEnd,   e._e);
+            const topPct    = (visStart - currentDisplayStart) / totalMin * 100;
+            const heightPct = Math.max(0.4, (visEnd - visStart) / totalMin * 100);
+            ev.style.top    = `${topPct}%`;
+            ev.style.height = `${heightPct}%`;
+            // 40분 이상은 100%, 짧을수록 비례 축소
+            const durationMin = e._e - e._s;
+            const scale = Math.max(0.5, Math.min(1, durationMin / 40));
             ev.style.setProperty("--event-scale", String(scale));
             col.appendChild(ev);
           });
@@ -3047,41 +3092,134 @@
       /* ── 확대 미리보기 모달 ── */
       const modalBackdrop   = document.getElementById("modalBackdrop");
       const modalSheetInner = document.getElementById("modalSheetInner");
-      const MODAL_SCALE = 3.0;
 
-      function applyModalScale() {
+      let _modalScale    = 3.0;
+      let _modalMinScale = 0.5;
+      let _modalMaxScale = 6.0;
+
+      function _getSheetCmDims() {
+        const PX_PER_CM = 37.8;
         const ws = parseFloat(getComputedStyle(document.documentElement)
-          .getPropertyValue("--print-width-cm")) || 8.7;
+          .getPropertyValue("--print-width-cm"))  || 8.7;
         const hs = parseFloat(getComputedStyle(document.documentElement)
           .getPropertyValue("--print-height-cm")) || 5.5;
-        const PX_PER_CM = 37.8;
-        const origW = Math.round(ws * PX_PER_CM);
-        const origH = Math.round(hs * PX_PER_CM);
+        return { origW: Math.round(ws * PX_PER_CM), origH: Math.round(hs * PX_PER_CM) };
+      }
 
-        // sheet를 원본 cm 크기로 유지하고 transform: scale 로 확대
-        // → 글자(pt), 테두리, 패딩 모두 비례 확대됨
+      function _applyScale(scale) {
+        const { origW, origH } = _getSheetCmDims();
         const sheet = document.getElementById("modalSheet");
-        sheet.style.width     = `${origW}px`;
-        sheet.style.height    = `${origH}px`;
-        sheet.style.transform = `scale(${MODAL_SCALE})`;
+        sheet.style.width          = `${origW}px`;
+        sheet.style.height         = `${origH}px`;
+        sheet.style.transform      = `scale(${scale})`;
+        sheet.style.transformOrigin = "top left";
+        modalSheetInner.style.width  = `${origW * scale}px`;
+        modalSheetInner.style.height = `${origH * scale}px`;
+        _modalScale = scale;
+      }
 
-        // inner wrapper는 시각적 크기(scale × 원본)만큼 공간을 예약
-        // (transform은 레이아웃에 영향 없으므로 직접 지정)
-        modalSheetInner.style.width  = `${origW * MODAL_SCALE}px`;
-        modalSheetInner.style.height = `${origH * MODAL_SCALE}px`;
+      function applyModalScale() {
+        const { origW, origH } = _getSheetCmDims();
+        const wrap = document.getElementById("modalSheetWrap");
 
-        // 이벤트는 원본 크기 기준으로 그림 (transform이 함께 확대)
+        let scale;
+        if (isMobile()) {
+          // 전체 시간표가 한눈에 보이도록 fit-to-screen 계산
+          const availW = wrap.clientWidth  - 24;   // 내부 패딩 12px×2
+          const availH = wrap.clientHeight - 24;
+          const scaleW = availW / origW;
+          const scaleH = availH / origH;
+          scale = Math.max(0.2, Math.min(scaleW, scaleH));
+          _modalMinScale = scale;
+          _modalMaxScale = Math.max(scale * 5, 3.0);
+        } else {
+          scale = 3.0;
+          _modalMinScale = 0.5;
+          _modalMaxScale = 6.0;
+        }
+
+        _applyScale(scale);
+
         const mtl = document.getElementById("modalTimeline");
         drawEvents(mtl);
         requestAnimationFrame(() => fitEventText(mtl));
       }
 
+      /* ── 핀치 줌 (모바일 두 손가락 확대·축소) ── */
+      (function() {
+        const wrap = document.getElementById("modalSheetWrap");
+        let isPinching   = false;
+        let startDist    = 0;
+        let startScale   = 1;
+        let startScrollL = 0;
+        let startScrollT = 0;
+        let startMidX    = 0;
+        let startMidY    = 0;
+
+        function touchDist(e) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        wrap.addEventListener("touchstart", (e) => {
+          if (e.touches.length !== 2) return;
+          isPinching   = true;
+          startDist    = touchDist(e);
+          startScale   = _modalScale;
+          startScrollL = wrap.scrollLeft;
+          startScrollT = wrap.scrollTop;
+          const rect   = wrap.getBoundingClientRect();
+          startMidX    = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+          startMidY    = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+        }, { passive: true });
+
+        wrap.addEventListener("touchmove", (e) => {
+          if (!isPinching || e.touches.length !== 2) return;
+          e.preventDefault();   // 브라우저 기본 핀치 줌 차단
+
+          const ratio    = touchDist(e) / startDist;
+          const newScale = Math.max(_modalMinScale,
+                           Math.min(_modalMaxScale, startScale * ratio));
+
+          const { origW, origH } = _getSheetCmDims();
+          const sheet = document.getElementById("modalSheet");
+          sheet.style.transform        = `scale(${newScale})`;
+          modalSheetInner.style.width  = `${origW * newScale}px`;
+          modalSheetInner.style.height = `${origH * newScale}px`;
+          _modalScale = newScale;
+
+          // 핀치 중심점을 기준으로 스크롤 유지
+          const sr     = newScale / startScale;
+          const docX   = startScrollL + startMidX;
+          const docY   = startScrollT + startMidY;
+          wrap.scrollLeft = docX * sr - startMidX;
+          wrap.scrollTop  = docY * sr - startMidY;
+        }, { passive: false });
+
+        wrap.addEventListener("touchend", (e) => {
+          if (e.touches.length < 2) isPinching = false;
+        }, { passive: true });
+
+        // 더블탭 → 배율 초기화 (fit-to-screen)
+        let lastTap = 0;
+        wrap.addEventListener("touchend", (e) => {
+          if (e.touches.length !== 0) return;
+          const now = Date.now();
+          if (now - lastTap < 300) {
+            applyModalScale();
+          }
+          lastTap = now;
+        }, { passive: true });
+      })();
+
       function openModal() {
+        if (document.body.classList.contains("bs-open")) return;
         const mtl = document.getElementById("modalTimeline");
         buildSkeleton(mtl);
         modalBackdrop.classList.add("open");
-        // DOM 렌더 완료 후 scale 적용
-        requestAnimationFrame(() => applyModalScale());
+        // 레이아웃 완전 계산 후 scale 적용 (double rAF)
+        requestAnimationFrame(() => requestAnimationFrame(() => applyModalScale()));
       }
 
       function closeModal() {
@@ -3381,12 +3519,14 @@
 
         // 시트 열기
         document.getElementById("bsBackdrop").classList.add("open");
+        document.body.classList.add("bs-open");
         document.body.style.overflow = "hidden";
         setTimeout(() => document.getElementById("bsName").focus(), 380);
       }
 
       function closeBottomSheet() {
         document.getElementById("bsBackdrop").classList.remove("open");
+        document.body.classList.remove("bs-open");
         document.body.style.overflow = "";
         bsEventId = null;
         bsDayKey  = null;
@@ -3438,6 +3578,10 @@
       // 버튼 이벤트
       document.getElementById("bsBackdrop").addEventListener("click", e => {
         if (e.target === document.getElementById("bsBackdrop")) closeBottomSheet();
+      });
+      // 바텀시트 내부 클릭은 backdrop으로 전파 차단
+      document.getElementById("bottomSheet").addEventListener("click", e => {
+        e.stopPropagation();
       });
       document.getElementById("bsCloseBtn").addEventListener("click",  closeBottomSheet);
       document.getElementById("bsCancelBtn").addEventListener("click", closeBottomSheet);
