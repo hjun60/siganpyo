@@ -1,5 +1,5 @@
 // ─── 버전 변경 시 캐시가 자동 갱신됩니다 ───────────────────────────
-const CACHE_VERSION = "v10";
+const CACHE_VERSION = "v13";
 const CACHE_NAME    = `luna-siganpyo-${CACHE_VERSION}`;
 
 // 반드시 캐시할 핵심 파일 (오프라인에서도 앱이 열려야 하는 것들)

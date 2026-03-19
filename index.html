@@ -806,29 +806,39 @@
         height: 100%;
         display: grid;
         grid-template-columns: 9.5mm repeat(5, 1fr);
-        /* grid-template-rows는 JS에서 동적으로 설정 (12:00~17:00 기본 30슬롯) */
+        /* grid-template-rows는 JS에서 동적으로 설정 */
         grid-template-rows: auto repeat(30, 1fr);
         background: #fff;
       }
       .tl-head {
-        font-size: 8pt;
-        font-weight: 800;
+        font-size: 7pt;
+        font-weight: 600;
         text-align: center;
-        padding: 1mm 0.5mm;
+        padding: 1.3mm 0;
         line-height: 1;
         user-select: none;
+        color: #64748b;
+        letter-spacing: 0.04em;
+        background: transparent;
+        border-bottom: 0.5px solid rgba(15,23,42,0.10);
       }
-      .tl-corner { grid-column: 1; grid-row: 1; }
+      .tl-corner {
+        grid-column: 1;
+        grid-row: 1;
+        background: transparent;
+        border-bottom: none; /* 숫자9 위에 선이 보이지 않도록, 요일 열 쪽만 선 표시 */
+      }
       .tl-time {
         grid-column: 1;
         display: flex;
         align-items: flex-start;
-        justify-content: center;
-        padding-top: 1px;
-        font-size: 7.5pt;
-        font-weight: 800;
+        justify-content: flex-end;
+        padding: 1.5px 2.5px 0 0;
+        font-size: 5.8pt;
+        font-weight: 400;
         line-height: 1;
         user-select: none;
+        color: #b0bec5;
       }
       .tl-col {
         position: relative;
@@ -840,9 +850,35 @@
         pointer-events: none;
         background: #fff;
       }
+      /* 열 구분선 */
+      .tl-col-divider {
+        position: absolute;
+        top: 0; bottom: 0; left: 0;
+        width: 0;
+        border-left: 0.5px solid rgba(15,23,42,0.07);
+        pointer-events: none;
+      }
+      /* 시 경계선 */
+      .tl-hour-line {
+        position: absolute;
+        left: 0; right: 0;
+        height: 0;
+        border-top: 0.5px solid rgba(15,23,42,0.09);
+        pointer-events: none;
+      }
+      /* 30분 보조선 */
+      .tl-half-line {
+        position: absolute;
+        left: 0; right: 0;
+        height: 0;
+        border-top: 0.5px solid rgba(15,23,42,0.04);
+        pointer-events: none;
+      }
       .tl-event {
         position: absolute;
-        left: 0.5mm; right: 0.5mm;
+        left: 0; right: 0;
+        width: calc(100% - 1mm);
+        margin: 0 auto;
         border-radius: 4px;
         padding: 0.8mm 1mm;
         overflow: hidden;
@@ -852,7 +888,7 @@
         gap: 0.35mm;
         align-items: center;
         box-sizing: border-box;
-        margin-top: 0.4mm;
+        margin-top: 0.25mm;
       }
       .tl-event .l1,
       .tl-event .l2,
@@ -1355,6 +1391,14 @@
           width: calc(var(--print-width-cm) * 1cm);
           height: calc(var(--print-height-cm) * 1cm);
           overflow: hidden;
+        }
+        /* 인쇄 시 텍스트 선명도 개선 */
+        .print-only .tl-event,
+        .print-only .tl-event * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
         }
       }
       /* @page size는 JS에서 동적으로 주입 (CSS 변수는 @page 안에서 미지원) */
@@ -2521,8 +2565,8 @@
           const h = document.createElement("div");
           h.className = "tl-head";
           let extraStyle = "";
-          if (d.key === "sat") extraStyle = "color:#1d4ed8;";
-          if (d.key === "sun") extraStyle = "color:#dc2626;";
+          if (d.key === "sat") extraStyle += "color:#2563eb;";
+          else if (d.key === "sun") extraStyle += "color:#dc2626;";
           h.style.cssText = `grid-column:${i + 2};grid-row:1;${extraStyle}`;
           h.textContent = d.label;
           container.appendChild(h);
@@ -2542,15 +2586,32 @@
           container.appendChild(t);
         }
 
-        // 요일 컬럼
+        // 요일 컬럼 + 그리드 라인
+        const totalMin = displayEnd - displayStart;
+        // 30분 단위 선 간격 결정 (SLOT_MIN 60이면 시간선만, 나머지는 30분선 추가)
+        const lineStep = SLOT_MIN < 60 ? 30 : 60;
+
         activeDays.forEach((d, i) => {
           const col = document.createElement("div");
           col.className = "tl-col";
           col.style.gridColumn = String(i + 2);
           col.dataset.dayKey = d.key;
+
           const bg = document.createElement("div");
           bg.className = "tl-col-bg";
           col.appendChild(bg);
+
+          // 수평 그리드 라인: displayStart+lineStep 부터 displayEnd 전까지
+          // lineStep 간격으로 모두 그림 → 9:30 누락 버그 해결
+          for (let m = displayStart + lineStep; m < displayEnd; m += lineStep) {
+            const pct = (m - displayStart) / totalMin * 100;
+            const isHour = (m % 60 === 0);
+            const line = document.createElement("div");
+            line.className = isHour ? "tl-hour-line" : "tl-half-line";
+            line.style.top = `${pct}%`;
+            col.appendChild(line);
+          }
+
           container.appendChild(col);
         });
       }
@@ -2590,11 +2651,12 @@
       }
 
       /* ── 셀 높이에 맞게 이벤트 글자 크기 자동 축소 ── */
+      /* 인쇄 시 깨짐 방지: scale 소수점 2자리로 반올림 */
       function fitEventText(container) {
         container.querySelectorAll(".tl-event").forEach((ev) => {
           if (ev.clientHeight <= 0) return;
           let scale = parseFloat(ev.style.getPropertyValue("--event-scale") || "1");
-          const minScale = 0.20;
+          const minScale = 0.25;  // 너무 작으면 인쇄 시 깨짐
           for (let i = 0; i < 20; i++) {
             void ev.offsetHeight;
             const lines = ev.querySelectorAll(".l1,.l2,.l3");
@@ -2608,7 +2670,7 @@
             if (needed <= ev.clientHeight + 1) break;
             if (scale <= minScale) break;
             scale = Math.max(minScale, scale * (ev.clientHeight / needed) * 0.90);
-            ev.style.setProperty("--event-scale", String(scale.toFixed(3)));
+            ev.style.setProperty("--event-scale", String(Math.round(scale * 100) / 100));
           }
         });
       }
@@ -3080,13 +3142,25 @@
         closeSaveModal();
       });
 
-      document.getElementById("printBtn").addEventListener("click", () => {
-        // 인쇄 전용 타임라인 즉시 재구성
+      function doPrint() {
         const ptl = document.getElementById("printTimeline");
+        const wrap = document.querySelector(".print-only");
         buildSkeleton(ptl);
         drawEvents(ptl);
-        setTimeout(() => window.print(), 150);
-      });
+        // fitEventText는 실제 레이아웃(치수)이 필요함 → print-only를 잠시 노출
+        wrap.style.cssText = "display:block!important;position:fixed!important;left:-99999px!important;top:0!important;visibility:visible!important;";
+        wrap.offsetHeight; // reflow
+        const onAfterPrint = () => {
+          wrap.style.cssText = "";
+          window.removeEventListener("afterprint", onAfterPrint);
+        };
+        window.addEventListener("afterprint", onAfterPrint);
+        requestAnimationFrame(() => {
+          fitEventText(ptl);
+          requestAnimationFrame(() => window.print());
+        });
+      }
+      document.getElementById("printBtn").addEventListener("click", doPrint);
 
 
       /* ── 확대 미리보기 모달 ── */
@@ -3242,10 +3316,7 @@
 
       // 모달에서 프린트
       document.getElementById("modalPrintBtn").addEventListener("click", () => {
-        const ptl = document.getElementById("printTimeline");
-        buildSkeleton(ptl);
-        drawEvents(ptl);
-        setTimeout(() => window.print(), 150);
+        preparePrintView(() => window.print());
       });
 
       /* ── 초기화: 저장된 시간표 로드 ── */
@@ -3577,7 +3648,10 @@
 
       // 버튼 이벤트
       document.getElementById("bsBackdrop").addEventListener("click", e => {
-        if (e.target === document.getElementById("bsBackdrop")) closeBottomSheet();
+        if (e.target !== document.getElementById("bsBackdrop")) return;
+        // iOS guard: 시트 안 입력창 포커스 중(키보드 올라옴)이면 phantom click → 무시
+        if (document.getElementById("bottomSheet").contains(document.activeElement)) return;
+        closeBottomSheet();
       });
       // 바텀시트 내부 클릭은 backdrop으로 전파 차단
       document.getElementById("bottomSheet").addEventListener("click", e => {
@@ -3606,8 +3680,11 @@
           if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
         }, { passive: true });
         sheet.addEventListener("touchend", e => {
+          const wasDragging = dragging;
           dragging = false;
           sheet.style.transition = "";
+          // 드래그가 시작되지 않은 터치(입력창 탭 등)는 스와이프 닫기 무시
+          if (!wasDragging) { sheet.style.transform = ""; return; }
           const dy = e.changedTouches[0].clientY - startY;
           if (dy > 100) { sheet.style.transform = ""; closeBottomSheet(); }
           else sheet.style.transform = "";
