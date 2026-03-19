@@ -1,5 +1,5 @@
-// ─── 버전 변경 시 캐시가 자동 갱신됩니다 ───────────────────────────
-const CACHE_VERSION = "v5";
+﻿// ─── 버전 변경 시 캐시가 자동 갱신됩니다 ───────────────────────────
+const CACHE_VERSION = "v6";
 const CACHE_NAME    = `luna-siganpyo-${CACHE_VERSION}`;
 
 // 반드시 캐시할 핵심 파일 (오프라인에서도 앱이 열려야 하는 것들)
@@ -7,6 +7,8 @@ const CORE_ASSETS = [
   "/",
   "/index.html",
   "/icon-512.png",
+  "/app-icon-fixed.png",
+  "/moon-icon.png",
   "/manifest.json",
 ];
 

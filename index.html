@@ -92,12 +92,12 @@
         align-items: center;
         gap: 7px;
       }
-      .topbar-title::before {
+            .topbar-title::before {
         content: "";
         display: inline-block;
-        width: 26px;
-        height: 26px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z' fill='%23FFE066' stroke='%23F0C030' stroke-width='0.5'/%3E%3C/svg%3E");
+        width: 28px;
+        height: 28px;
+        background-image: url("/moon-icon.png");
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -1323,6 +1323,246 @@
       /* @page size는 JS에서 동적으로 주입 (CSS 변수는 @page 안에서 미지원) */
       @page { margin: 0; }
       .print-only { display: none; }
+
+      /* ──────────────────────────────────────────────
+         바텀 시트 (모바일 일정 편집)
+      ────────────────────────────────────────────── */
+      .bs-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 3000;
+        align-items: flex-end;
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+      }
+      .bs-backdrop.open { display: flex; }
+      .bottom-sheet {
+        width: 100%;
+        max-height: 92vh;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transform: translateY(100%);
+        transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+        box-shadow: 0 -6px 40px rgba(0,0,0,0.18);
+      }
+      .bs-backdrop.open .bottom-sheet { transform: translateY(0); }
+      .bs-handle {
+        width: 40px; height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+        margin: 14px auto 0;
+        cursor: grab;
+      }
+      .bs-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 14px;
+        border-bottom: 1px solid #f0f4f8;
+      }
+      .bs-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.3px;
+      }
+      .bs-close-btn {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 18px;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: none;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .bs-body {
+        padding: 20px 20px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .bs-colors {
+        display: grid;
+        grid-template-columns: repeat(14, 1fr);
+        gap: 7px;
+      }
+      .bs-swatch {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2.5px solid transparent;
+        transition: transform 0.15s, border-color 0.15s;
+        box-sizing: border-box;
+      }
+      .bs-swatch.selected {
+        border-color: #3b82f6;
+        transform: scale(1.18);
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+      }
+      .bs-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .bs-field-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .bs-field input,
+      .bs-field select {
+        width: 100%;
+        height: 52px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0 16px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #0f172a;
+        background: #f8fafc;
+        outline: none;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        appearance: none;
+        font-family: inherit;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .bs-field input:focus,
+      .bs-field select:focus {
+        border-color: #3b82f6;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+      }
+      .bs-time-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .bs-time-row select { flex: 1; }
+      .bs-time-sep {
+        font-size: 18px;
+        font-weight: 600;
+        color: #94a3b8;
+        flex-shrink: 0;
+      }
+      .bs-footer {
+        padding: 14px 20px 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .bs-delete-btn {
+        height: 52px;
+        border-radius: 14px;
+        background: #fff;
+        color: #ef4444;
+        border: 1.5px solid #fecaca;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 0 16px;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-family: inherit;
+        transition: background 0.15s;
+      }
+      .bs-delete-btn:hover { background: #fef2f2; }
+      .bs-cancel-btn {
+        flex: 1;
+        height: 52px;
+        border-radius: 14px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 15px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+      }
+      .bs-cancel-btn:hover { background: #e2e8f0; }
+      .bs-save-btn {
+        flex: 2;
+        height: 52px;
+        border-radius: 14px;
+        background: linear-gradient(90deg, #10b981, #3b82f6);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity 0.15s;
+      }
+      .bs-save-btn:hover { opacity: 0.9; }
+
+      /* 모바일 카드 요약 뷰 */
+      .mobile-card-summary { display: none; }
+      .mcs-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .mcs-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mcs-sub {
+        font-size: 12px;
+        color: #475569;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mcs-arrow {
+        font-size: 22px;
+        color: #94a3b8;
+        flex-shrink: 0;
+        line-height: 1;
+        padding-left: 4px;
+      }
+
+      /* 모바일 오버라이드 */
+      @media (max-width: 768px) {
+        .mobile-card-summary {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          padding: 2px 0;
+          min-height: 36px;
+        }
+        /* 데스크탑 편집 UI 숨김 */
+        .event-card .drag-handle,
+        .event-card .card-top,
+        .event-card .card-field { display: none !important; }
+        .event-card {
+          padding: 10px 14px !important;
+          cursor: pointer;
+          border-radius: 12px;
+          min-height: 50px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1477,6 +1717,43 @@
     <!-- 파일 선택 (hidden) -->
     <input type="file" id="importFileInput" accept=".json,application/json" style="display:none" />
 
+    <!-- 바텀 시트 (모바일 일정 편집) -->
+    <div class="bs-backdrop" id="bsBackdrop">
+      <div class="bottom-sheet" id="bottomSheet">
+        <div class="bs-handle" id="bsHandle"></div>
+        <div class="bs-header">
+          <span class="bs-title" id="bsTitle">새 일정 추가</span>
+          <button class="bs-close-btn" id="bsCloseBtn">&#x2715;</button>
+        </div>
+        <div class="bs-body">
+          <div class="bs-field">
+            <span class="bs-field-label">색상</span>
+            <div class="bs-colors" id="bsColors"></div>
+          </div>
+          <div class="bs-field">
+            <span class="bs-field-label">제목</span>
+            <input type="text" id="bsName" placeholder="예) 수학 수업" maxlength="40" autocomplete="off" />
+          </div>
+          <div class="bs-field">
+            <span class="bs-field-label">교실</span>
+            <input type="text" id="bsPlace" placeholder="예) 과학실2" maxlength="30" autocomplete="off" />
+          </div>
+          <div class="bs-field">
+            <span class="bs-field-label">시간</span>
+            <div class="bs-time-row">
+              <select id="bsStartSel"></select>
+              <span class="bs-time-sep">~</span>
+              <select id="bsEndSel"></select>
+            </div>
+          </div>
+        </div>
+        <div class="bs-footer">
+          <button class="bs-delete-btn" id="bsDeleteBtn">삭제</button>
+          <button class="bs-cancel-btn" id="bsCancelBtn">취소</button>
+          <button class="bs-save-btn" id="bsSaveBtn">저장</button>
+        </div>
+      </div>
+    </div>
     <!-- 토스트 알림 -->
     <div class="toast" id="toast"></div>
 
@@ -1660,6 +1937,7 @@
           addBtn.className = "add-btn";
           addBtn.textContent = "+ 추가";
           addBtn.addEventListener("click", () => {
+            if (isMobile()) { openBottomSheet(null, d.key); return; }
             pushUndoState();
             events.push({ id: `${d.key}-${++uidCounter}`, day: d.key, color: "bg-none", name: "", place: "", time: "" });
             markDirty();
@@ -1857,7 +2135,30 @@
           row.appendChild(wrap);
           card.appendChild(row);
         }
-
+        /* 모바일 요약 뷰: 탭하면 바텀 시트 오픈 */
+        const mobileSummary = document.createElement("div");
+        mobileSummary.className = "mobile-card-summary";
+        const mcsInfo = document.createElement("div");
+        mcsInfo.className = "mcs-info";
+        const mcsName = document.createElement("span");
+        mcsName.className = "mcs-name";
+        mcsName.textContent = e.name || "제목 없음";
+        if (!e.name) mcsName.style.color = "#94a3b8";
+        mcsInfo.appendChild(mcsName);
+        const sub = [e.place, e.time].filter(Boolean).join("  |  ");
+        if (sub) {
+          const mcsSub = document.createElement("span");
+          mcsSub.className = "mcs-sub";
+          mcsSub.textContent = sub;
+          mcsInfo.appendChild(mcsSub);
+        }
+        const mcsArrow = document.createElement("span");
+        mcsArrow.className = "mcs-arrow";
+        mcsArrow.textContent = "›";
+        mobileSummary.appendChild(mcsInfo);
+        mobileSummary.appendChild(mcsArrow);
+        mobileSummary.addEventListener("click", () => openBottomSheet(e.id, e.day));
+        card.appendChild(mobileSummary);
         return card;
       }
 
@@ -2997,6 +3298,158 @@
         const safe = name.replace(/[/\\:*?"<>|]/g, "_").trim() || "시간표";
         return safe + ".pdf";
       }
+
+
+      /* ══════════════════════════════════════════════
+         바텀 시트 (모바일 일정 편집)
+      ══════════════════════════════════════════════ */
+      let bsEventId = null;   // 편집 중인 event id (null = 신규)
+      let bsDayKey  = null;   // 대상 요일
+      let bsColor   = "bg-none"; // 선택된 색상
+
+      function isMobile() { return window.innerWidth <= 768; }
+
+      function openBottomSheet(eventId, dayKey) {
+        bsEventId = eventId;
+        bsDayKey  = dayKey;
+        const ev = eventId ? events.find(e => e.id === eventId) : null;
+        bsColor = ev ? (ev.color || "bg-none") : "bg-none";
+
+        // 제목
+        document.getElementById("bsTitle").textContent = eventId ? "일정 수정" : "새 일정 추가";
+
+        // 색상 스와치 렌더링
+        const colorsEl = document.getElementById("bsColors");
+        colorsEl.innerHTML = "";
+        COLORS.forEach(c => {
+          const sw = document.createElement("div");
+          sw.className = "bs-swatch" + (c.key === bsColor ? " selected" : "");
+          sw.style.background = c.hex;
+          if (c.hex === "#ffffff") sw.style.boxShadow = "inset 0 0 0 1px #d1d5db";
+          sw.addEventListener("click", () => {
+            bsColor = c.key;
+            colorsEl.querySelectorAll(".bs-swatch").forEach(s => s.classList.remove("selected"));
+            sw.classList.add("selected");
+          });
+          colorsEl.appendChild(sw);
+        });
+
+        // 입력 필드
+        document.getElementById("bsName").value  = ev ? (ev.name  || "") : "";
+        document.getElementById("bsPlace").value = ev ? (ev.place || "") : "";
+
+        // 시간 셀렉트 초기화 (기존 helpers 재사용)
+        const { start: parsedStart, end: parsedEnd } = extractStartEnd(ev ? ev.time : "");
+        const initStart = minutesToTimeStr(clamp(parsedStart));
+        const initEnd   = minutesToTimeStr(clamp(parsedEnd));
+        const startSel  = document.getElementById("bsStartSel");
+        const endSel    = document.getElementById("bsEndSel");
+
+        startSel.innerHTML = "";
+        const noneOpt = document.createElement("option");
+        noneOpt.value = ""; noneOpt.textContent = "시작";
+        startSel.appendChild(noneOpt);
+        TIME_OPTIONS.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t; opt.textContent = t;
+          if (t === initStart) opt.selected = true;
+          startSel.appendChild(opt);
+        });
+        updateEndTimeOptions(endSel, initStart);
+        if (initEnd) endSel.value = initEnd;
+
+        // 삭제 버튼 표시 여부
+        document.getElementById("bsDeleteBtn").style.display = eventId ? "" : "none";
+
+        // 시트 열기
+        document.getElementById("bsBackdrop").classList.add("open");
+        document.body.style.overflow = "hidden";
+        setTimeout(() => document.getElementById("bsName").focus(), 380);
+      }
+
+      function closeBottomSheet() {
+        document.getElementById("bsBackdrop").classList.remove("open");
+        document.body.style.overflow = "";
+        bsEventId = null;
+        bsDayKey  = null;
+      }
+
+      function saveBottomSheet() {
+        const name     = document.getElementById("bsName").value.trim();
+        const place    = document.getElementById("bsPlace").value.trim();
+        const startVal = document.getElementById("bsStartSel").value;
+        const endVal   = document.getElementById("bsEndSel").value;
+        const timeStr  = formatTimeText(startVal, endVal);
+
+        // 시간 겹침 검사
+        if (startVal || endVal) {
+          const { start: s, end: en } = extractStartEnd(timeStr);
+          if (hasTimeOverlap(bsDayKey, bsEventId || "", s, en)) {
+            showToast("같은 요일에서 시간이 겹칩니다.");
+            return;
+          }
+        }
+
+        pushUndoState();
+        if (bsEventId) {
+          const ev = events.find(e => e.id === bsEventId);
+          if (ev) { ev.color = bsColor; ev.name = name; ev.place = place; ev.time = timeStr; }
+        } else {
+          events.push({ id: `${bsDayKey}-${++uidCounter}`, day: bsDayKey, color: bsColor, name, place, time: timeStr });
+        }
+        markDirty();
+        renderEditor();
+        renderPreview();
+        closeBottomSheet();
+        showToast(bsEventId ? "수정되었습니다." : "추가되었습니다.");
+      }
+
+      function deleteFromBottomSheet() {
+        if (!bsEventId) return;
+        if (!confirm("이 일정을 삭제할까요?")) return;
+        pushUndoState();
+        events = events.filter(e => e.id !== bsEventId);
+        markDirty();
+        renderEditor();
+        renderPreview();
+        closeBottomSheet();
+        showToast("삭제되었습니다.");
+      }
+
+      // 버튼 이벤트
+      document.getElementById("bsBackdrop").addEventListener("click", e => {
+        if (e.target === document.getElementById("bsBackdrop")) closeBottomSheet();
+      });
+      document.getElementById("bsCloseBtn").addEventListener("click",  closeBottomSheet);
+      document.getElementById("bsCancelBtn").addEventListener("click", closeBottomSheet);
+      document.getElementById("bsSaveBtn").addEventListener("click",   saveBottomSheet);
+      document.getElementById("bsDeleteBtn").addEventListener("click", deleteFromBottomSheet);
+      document.getElementById("bsStartSel").addEventListener("change", () => {
+        updateEndTimeOptions(document.getElementById("bsEndSel"), document.getElementById("bsStartSel").value);
+      });
+
+      // 스와이프 다운으로 닫기
+      (function() {
+        const sheet = document.getElementById("bottomSheet");
+        let startY = 0, dragging = false;
+        sheet.addEventListener("touchstart", e => {
+          if (e.target.closest("select,input")) return;
+          startY = e.touches[0].clientY; dragging = true;
+          sheet.style.transition = "none";
+        }, { passive: true });
+        sheet.addEventListener("touchmove", e => {
+          if (!dragging) return;
+          const dy = e.touches[0].clientY - startY;
+          if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+        }, { passive: true });
+        sheet.addEventListener("touchend", e => {
+          dragging = false;
+          sheet.style.transition = "";
+          const dy = e.changedTouches[0].clientY - startY;
+          if (dy > 100) { sheet.style.transform = ""; closeBottomSheet(); }
+          else sheet.style.transform = "";
+        });
+      })();
 
       /* PDF 저장 */
       document.getElementById("pdfBtn").addEventListener("click", async () => {
