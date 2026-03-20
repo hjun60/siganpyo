@@ -80,11 +80,11 @@
 
       /* ── 상단 바 (Glassmorphism + Indigo Blue) ── */
       .topbar {
-        height: var(--topbar-h);
+        min-height: var(--topbar-h);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 20px;
+        padding: 10px 20px 12px;
         background: linear-gradient(135deg, rgba(74,144,226,0.75) 0%, rgba(92,107,192,0.7) 100%);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
@@ -94,9 +94,14 @@
         gap: 10px;
         flex-wrap: wrap;
       }
+      .topbar-brand {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
       .topbar-title {
         font-family: "Apple SD Gothic Neo", "Pretendard", sans-serif;
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 600;
         letter-spacing: -0.03em;
         display: flex;
@@ -104,6 +109,12 @@
         gap: 10px;
         color: #fff;
         text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      }
+      .topbar-tagline {
+        font-size: 12px;
+        color: rgba(255,255,255,0.88);
+        letter-spacing: -0.02em;
+        line-height: 1.4;
       }
       .topbar-title .moon-icon {
         display: inline-flex;
@@ -143,7 +154,17 @@
       .topbar button.primary:hover { background: #fff; }
       .topbar button.save { background: var(--green); border-color: transparent; color: #fff; }
       .topbar button.save:hover { background: #4d8a67; border-color: transparent; }
-      .topbar button.pdf-btn { background: var(--red); border-color: transparent; color: #fff; }
+      .topbar button.pdf-btn {
+        background: #4A90E2;
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(74,144,226,0.4);
+      }
+      .topbar button.pdf-btn:hover {
+        background: #3a7bc8;
+        box-shadow: 0 3px 12px rgba(74,144,226,0.5);
+      }
       .size-group {
         display: flex;
         align-items: center;
@@ -295,6 +316,109 @@
       }
       button.import-btn:hover { background: #bbdefb; }
 
+      /* 이용 팁 버튼 */
+      button.tips-btn {
+        background: rgba(255,214,10,0.35);
+        color: #6d5a00;
+        font-weight: 700;
+        border: 1.5px solid rgba(255,214,10,0.6);
+      }
+      button.tips-btn:hover { background: rgba(255,214,10,0.5); }
+
+      /* 이용 팁 모달 */
+      .tips-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0.25s, opacity 0.25s;
+        pointer-events: none;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .tips-backdrop.open {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .tips-box {
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 22px;
+        padding: 28px 28px 26px;
+        width: 520px;
+        max-width: 92vw;
+        max-height: 88vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        transform: scale(0.95);
+        opacity: 0;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+      }
+      .tips-backdrop.open .tips-box {
+        transform: scale(1);
+        opacity: 1;
+      }
+      .tips-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .tips-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--label);
+      }
+      .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.8;
+        color: var(--secondary);
+      }
+      .tips-list li {
+        position: relative;
+        padding-left: 26px;
+        margin-bottom: 18px;
+      }
+      .tips-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--blue);
+        font-weight: 700;
+      }
+      .tips-list li:last-child { margin-bottom: 0; }
+      .tips-list b { color: var(--label); font-weight: 600; }
+
+      /* 하단 푸터 */
+      .app-footer {
+        flex-shrink: 0;
+        text-align: center;
+        padding: 20px 16px 24px;
+        margin-top: 24px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: #888;
+        max-width: 560px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .app-footer a {
+        color: #6b7280;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .app-footer a:hover { color: var(--blue); }
+
       /* 로딩 스피너 */
       button.loading {
         opacity: 0.6;
@@ -344,9 +468,80 @@
       /* ── 메인 2분할 ── */
       .main {
         display: flex;
+        flex-direction: column;
         flex: 1;
         overflow: hidden;
       }
+      .main-panels {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* ── 상단 가이드 영역 ── */
+      .welcome-guide {
+        flex-shrink: 0;
+        padding: 14px 16px;
+      }
+      .welcome-guide-inner {
+        background: linear-gradient(135deg, rgba(255,248,240,0.95) 0%, rgba(240,248,255,0.95) 100%);
+        border: 1px solid rgba(74,144,226,0.12);
+        border-radius: 16px;
+        padding: 16px 20px 18px;
+        box-shadow: 0 4px 20px rgba(74,144,226,0.08), 0 1px 3px rgba(0,0,0,0.04);
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .welcome-guide-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .welcome-guide-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--label);
+        letter-spacing: -0.02em;
+      }
+      .welcome-guide-chevron {
+        font-size: 12px;
+        color: var(--secondary);
+        transition: transform 0.25s ease;
+      }
+      .welcome-guide.expanded .welcome-guide-chevron { transform: rotate(180deg); }
+      .welcome-guide-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      .welcome-guide:hover .welcome-guide-body,
+      .welcome-guide.expanded .welcome-guide-body {
+        max-height: 240px;
+      }
+      .welcome-guide-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        padding-top: 12px;
+        font-size: 13px;
+        line-height: 1.75;
+        color: var(--secondary);
+      }
+      .welcome-guide-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .welcome-guide-list li:last-child { margin-bottom: 0; }
+      .welcome-icon {
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+      .welcome-guide-list b { color: var(--label); font-weight: 600; }
 
       /* ── 왼쪽: 에디터 ── */
       .editor-panel {
@@ -881,8 +1076,9 @@
 
       /* ── 오른쪽: 미리보기 (플로팅 위젯 카드) ── */
       .preview-panel {
-        width: calc(var(--print-width-cm) * 1cm + 80px);
+        width: min(calc(var(--print-width-cm) * 1cm + 80px), 420px);
         min-width: 220px;
+        max-width: 100%;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
@@ -922,6 +1118,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        max-width: 100%;
+        overflow: hidden;
+      }
+      .sheet-scale-wrapper {
+        transform-origin: center top;
+        flex-shrink: 0;
       }
       .sheet {
         width: calc(var(--print-width-cm) * 1cm);
@@ -1531,6 +1733,18 @@
           white-space: nowrap;
         }
         .main { flex-direction: column; padding: 12px; }
+        .main-panels { flex-direction: column; }
+        .topbar-tagline { font-size: 11px; }
+        .welcome-guide { padding: 10px 0 12px; }
+        .welcome-guide-inner { padding: 12px 14px 14px; }
+        .welcome-guide-title { font-size: 13px; }
+        .welcome-guide:hover .welcome-guide-body,
+        .welcome-guide.expanded .welcome-guide-body { max-height: 220px; }
+        .welcome-guide-list { font-size: 12px; line-height: 1.7; }
+        .welcome-icon { font-size: 14px; }
+        .app-footer { padding: 16px 12px 20px; font-size: 11.5px; margin-top: 16px; }
+        .tips-box { padding: 24px 22px 22px; max-height: 85vh; }
+        .tips-list { font-size: 15px; }
 
         /* 에디터 패널: 모바일에서 전체 너비 */
         .editor-panel {
@@ -1605,10 +1819,10 @@
           page-break-after: avoid;
           page-break-before: avoid;
         }
-        .topbar, .editor-panel, .preview-panel,
+        .topbar, .welcome-guide, .editor-panel, .preview-panel,
         .modal-backdrop, .toast,
         .bs-backdrop, #saveModalBackdrop, #importBackdrop,
-        #pdfBtn, .coupang-banner { display: none !important; }
+        #pdfBtn, .tips-btn, .tips-backdrop, .app-footer, .coupang-banner { display: none !important; }
         .print-only {
           display: flex !important;
           justify-content: center;
@@ -1917,20 +2131,41 @@
   <body>
     <!-- 상단 바 -->
     <div class="topbar">
-      <span class="topbar-title"><span class="moon-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>luna-schedule<span class="version-badge">v1.0</span></span>
+      <div class="topbar-brand">
+        <span class="topbar-title"><span class="moon-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>luna-schedule<span class="version-badge">v1.0</span></span>
+        <span class="topbar-tagline">냉장고에 붙이기 딱 좋은, 우리 아이 종이 시간표 1분 완성</span>
+      </div>
       <div class="topbar-right">
         <button id="reset">초기화</button>
         <button id="undoBtn" title="실행 취소 (Ctrl+Z)">↩ 되돌리기</button>
         <button class="export-btn" id="exportBtn">내보내기</button>
         <button class="import-btn" id="importBtn">가져오기</button>
         <button class="primary" id="printBtn">프린트</button>
-        <button class="pdf-btn" id="pdfBtn">PDF 저장</button>
+        <button class="pdf-btn" id="pdfBtn">🖨️ PDF 저장</button>
+        <button class="tips-btn" id="tipsBtn" title="이용 팁">💡 이용 팁</button>
       </div>
     </div>
 
     <!-- 메인 -->
     <div class="main">
-      <!-- 왼쪽: 에디터 -->
+      <!-- 상단 가이드 영역 -->
+      <div class="welcome-guide" id="welcomeGuide">
+        <div class="welcome-guide-inner">
+          <div class="welcome-guide-header">
+            <p class="welcome-guide-title">처음 오셨나요? 😊</p>
+            <span class="welcome-guide-chevron">▼</span>
+          </div>
+          <div class="welcome-guide-body">
+          <ul class="welcome-guide-list">
+            <li><span class="welcome-icon">🎨</span> 색상을 고르고 시간표 칸을 눌러 내용을 적으세요. (제목/교실 중 하나만 적어도 예뻐요!)</li>
+            <li><span class="welcome-icon">💾</span> 작성하신 내용은 자동으로 안전하게 저장됩니다.</li>
+            <li><span class="welcome-icon">🖨️</span> 상단 <b>PDF 저장</b> 버튼을 누르면, 예쁜 종이 시간표가 인쇄 준비 완료!</li>
+          </ul>
+          </div>
+        </div>
+      </div>
+      <!-- 에디터 + 미리보기 패널 -->
+      <div class="main-panels">
       <div class="editor-panel">
         <div class="timetable-list-row">
           <div class="timetable-list" id="timetableList">
@@ -1970,12 +2205,12 @@
               <span class="size-group-label">📄 인쇄 크기</span>
               <div class="size-field">
                 <span class="size-label">가로</span>
-                <input id="wCm" type="number" step="0.1" min="1" value="9" />
+                <input id="wCm" type="number" step="0.1" min="3" max="25" value="9" />
                 <span class="size-unit">cm</span>
               </div>
               <div class="size-field">
                 <span class="size-label">세로</span>
-                <input id="hCm" type="number" step="0.1" min="1" value="5.5" />
+                <input id="hCm" type="number" step="0.1" min="3" max="25" value="5.5" />
                 <span class="size-unit">cm</span>
               </div>
             </div>
@@ -1991,8 +2226,10 @@
           <span id="sizeLabel">9 × 5.5 cm</span>
         </div>
         <div class="sheet-frame">
-          <div class="sheet" id="sheet">
-            <div class="timeline" id="timeline"></div>
+          <div class="sheet-scale-wrapper" id="sheetScaleWrapper">
+            <div class="sheet" id="sheet">
+              <div class="timeline" id="timeline"></div>
+            </div>
           </div>
         </div>
         <div style="font-size:10.5px;color:var(--secondary);text-align:center;line-height:1.7;letter-spacing:-0.1px;">
@@ -2004,7 +2241,13 @@
           <span class="coupang-banner-text">유치원 &amp; 초등 저학년 새 학기 필수 준비물 모아보기 🖍️</span>
         </a>
       </div>
+      </div>
     </div>
+
+    <!-- 하단 푸터 -->
+    <footer class="app-footer">
+      이용 중 불편한 점이나 좋은 아이디어가 있다면 언제든 <a href="mailto:hjun4714@gmail.com">hjun4714@gmail.com</a>으로 편하게 알려주세요.<br/>아이들을 위해 계속 개선해 나갈게요!
+    </footer>
 
     <!-- 확대 미리보기 모달 -->
     <div class="modal-backdrop" id="modalBackdrop">
@@ -2070,6 +2313,23 @@
     </div>
     <!-- 파일 선택 (hidden) -->
     <input type="file" id="importFileInput" accept=".json,application/json" style="display:none" />
+
+    <!-- 이용 팁 모달 -->
+    <div class="tips-backdrop" id="tipsBackdrop">
+      <div class="tips-box">
+        <div class="tips-header">
+          <span class="tips-title">💡 이용 팁</span>
+          <button class="modal-close" id="tipsClose" title="닫기">×</button>
+        </div>
+        <ul class="tips-list">
+          <li>작성하신 내용은 자동으로 안전하게 저장돼요! (제목이나 교실 중 하나만 입력해도 예쁘게 만들어집니다.)</li>
+          <li>활동 시간이 너무 짧으면 인쇄할 때 글자가 겹쳐 보일 수 있어요. 인쇄하기 전 <b>미리보기</b>를 꼭 확인해 주세요.</li>
+          <li>시간표는 지금 사용 중인 기기(PC나 스마트폰)에만 저장됩니다. 다른 기기나 남편/아내의 폰으로 옮기려면 <b>내보내기</b>로 파일을 다운받은 뒤 <b>가져오기</b>를 이용해 주세요.</li>
+          <li>스마트폰에서도 쓸 수 있지만, 넓은 PC 화면에서 만들면 훨씬 더 편하게 작성하실 수 있답니다!</li>
+          <li><b>초기화</b> 버튼을 누르면 작성하신 모든 내용이 지워지니 주의해 주세요!</li>
+        </ul>
+      </div>
+    </div>
 
     <!-- 바텀 시트 (모바일 일정 편집) -->
     <div class="bs-backdrop" id="bsBackdrop">
@@ -3210,8 +3470,9 @@
       /* ── 인쇄 크기 ── */
       let lastWcm = 9, lastHcm = 5.5;
       function setPrintSize(w, h, skipSave) {
-        const ws = (+w > 0 && isFinite(+w)) ? +w : 9;
-        const hs = (+h > 0 && isFinite(+h)) ? +h : 5.5;
+        const clampVal = (v, lo, hi) => Math.max(lo, Math.min(hi, (+v > 0 && isFinite(+v)) ? +v : 9));
+        const ws = clampVal(w, 3, 25);
+        const hs = clampVal(h, 3, 25);
         lastWcm = ws;
         lastHcm = hs;
         document.documentElement.style.setProperty("--print-width-cm", ws);
@@ -3220,11 +3481,26 @@
         document.getElementById("hCm").value = hs;
         const lbl = `${ws} × ${hs} cm`;
         document.getElementById("sizeLabel").textContent = lbl;
-        document.querySelector(".preview-panel").style.width =
-          `calc(${ws}cm + 52px)`;
+        document.querySelector(".preview-panel").style.width = "";
         updatePageStyle(ws, hs);
         renderPreview();
+        updatePreviewScale();
         if (!skipSave) persistTimetables();
+      }
+
+      function updatePreviewScale() {
+        const frame = document.querySelector(".preview-panel .sheet-frame");
+        const wrapper = document.getElementById("sheetScaleWrapper");
+        if (!frame || !wrapper) return;
+        const ws = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--print-width-cm")) || 9;
+        const hs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--print-height-cm")) || 5.5;
+        const pxPerCm = 37.8;
+        const sheetW = ws * pxPerCm;
+        const sheetH = hs * pxPerCm;
+        const availW = Math.max(1, frame.clientWidth - 48);
+        const availH = Math.max(1, Math.min(frame.clientHeight - 48, 450));
+        const scale = Math.min(1, availW / sheetW, availH / sheetH);
+        wrapper.style.transform = `scale(${Math.max(0.08, scale)})`;
       }
 
       /* ── 이벤트 바인딩 ── */
@@ -3758,7 +4034,11 @@
           applyTimetable(timetables[0]);
         }
         renderTimetableSelect();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => updatePreviewScale());
+        });
       })();
+      window.addEventListener("resize", () => updatePreviewScale());
       /* ── 내보내기 / 가져오기 ── */
 
       // 내보내기: 모든 시간표를 JSON 파일로 다운로드
@@ -3811,6 +4091,25 @@
       });
       importBackdrop.addEventListener("click", (e) => {
         if (e.target === importBackdrop) importBackdrop.classList.remove("open");
+      });
+
+      /* 이용 팁 모달 */
+      const tipsBackdrop = document.getElementById("tipsBackdrop");
+      document.getElementById("tipsBtn").addEventListener("click", () => {
+        tipsBackdrop.classList.add("open");
+      });
+      document.getElementById("tipsClose").addEventListener("click", () => {
+        tipsBackdrop.classList.remove("open");
+      });
+      tipsBackdrop.addEventListener("click", (e) => {
+        if (e.target === tipsBackdrop) tipsBackdrop.classList.remove("open");
+      });
+
+      /* 상단 가이드: 클릭 시 펼쳐짐/접힘 (모바일 터치·웹 호버 모두 지원) */
+      const welcomeGuide = document.getElementById("welcomeGuide");
+      welcomeGuide.addEventListener("click", (e) => {
+        e.stopPropagation();
+        welcomeGuide.classList.toggle("expanded");
       });
 
       // 공통: 파일 읽고 적용
