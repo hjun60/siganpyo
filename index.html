@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <title>Luna's 시간표</title>
+    <title>luna-schedule</title>
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
@@ -11,7 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Luna 시간표" />
+    <meta name="apple-mobile-web-app-title" content="luna-schedule" />
     <link rel="apple-touch-icon" href="/app-icon-fixed.png" />
     <link rel="apple-touch-icon" sizes="1024x1024" href="/app-icon-fixed.png" />
 
@@ -29,7 +29,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
     <style>
       :root {
-        --print-width-cm: 8.7;
+        --print-width-cm: 9;
         --print-height-cm: 5.5;
         /* Apple Indigo Blue 그라데이션 */
         --grad-start:  #4A90E2;
@@ -1468,9 +1468,6 @@
           font-size: 11.5px;
           white-space: nowrap;
         }
-        .size-field { display: none; }
-        .size-group { display: none; }
-
         .main { flex-direction: column; padding: 12px; }
 
         /* 에디터 패널: 모바일에서 전체 너비 */
@@ -1531,27 +1528,44 @@
           -webkit-print-color-adjust: exact;
         }
         html, body {
-          width: calc(var(--print-width-cm) * 1cm);
-          height: calc(var(--print-height-cm) * 1cm);
+          width: 210mm;
+          height: 297mm;
+          min-height: 297mm;
+          max-height: 297mm;
           background: #fff;
-          overflow: visible;
-          display: block;
-          margin: 0; padding: 0;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          page-break-after: avoid;
+          page-break-before: avoid;
         }
         .topbar, .editor-panel, .preview-panel,
         .modal-backdrop, .toast,
         .bs-backdrop, #saveModalBackdrop, #importBackdrop,
         #pdfBtn { display: none !important; }
         .print-only {
-          display: block !important;
-          margin: 0; padding: 0;
-          width: calc(var(--print-width-cm) * 1cm);
-          height: calc(var(--print-height-cm) * 1cm);
+          display: flex !important;
+          justify-content: center;
+          align-items: center;
+          margin: 0;
+          padding: 0;
+          width: 210mm;
+          height: 297mm;
+          min-height: 297mm;
+          max-height: 297mm;
+          overflow: hidden;
+          page-break-inside: avoid;
         }
         .print-only .sheet.print-sheet {
-          margin: 0; padding: 0;
-          width: 100%;
-          height: 100%;
+          margin: 0;
+          padding: 0;
+          width: calc(var(--print-width-cm) * 1cm);
+          height: calc(var(--print-height-cm) * 1cm);
+          flex-shrink: 0;
           overflow: hidden;
         }
         .print-only .print-footer {
@@ -1569,8 +1583,7 @@
         .print-only .tl-event .l2 { color: #2d3239; }
         .print-only .tl-event .l3 { color: #3d4349; }
       }
-      /* @page size는 JS에서 동적으로 주입 (CSS 변수는 @page 안에서 미지원) */
-      @page { margin: 0; }
+      /* @page size는 JS에서 동적 주입 (A4, 1페이지) */
       .print-only { display: none; }
 
       /* ──────────────────────────────────────────────
@@ -1850,19 +1863,6 @@
         <button class="import-btn" id="importBtn">가져오기</button>
         <button class="primary" id="printBtn">프린트</button>
         <button class="pdf-btn" id="pdfBtn">PDF 저장</button>
-        <div class="size-group">
-          <span class="size-group-label">📄 인쇄 크기</span>
-          <div class="size-field">
-            <span class="size-label">가로</span>
-            <input id="wCm" type="number" step="0.1" min="1" value="8.7" />
-            <span class="size-unit">cm</span>
-          </div>
-          <div class="size-field">
-            <span class="size-label">세로</span>
-            <input id="hCm" type="number" step="0.1" min="1" value="5.5" />
-            <span class="size-unit">cm</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1904,6 +1904,19 @@
             <span class="slot-interval-label">~</span>
             <select class="display-range-sel" id="displayEndSel"></select>
             <button class="slot-btn" id="displayRangeAutoBtn" title="이벤트 시간에 맞게 자동 설정">자동</button>
+            <div class="size-group">
+              <span class="size-group-label">📄 인쇄 크기</span>
+              <div class="size-field">
+                <span class="size-label">가로</span>
+                <input id="wCm" type="number" step="0.1" min="1" value="9" />
+                <span class="size-unit">cm</span>
+              </div>
+              <div class="size-field">
+                <span class="size-label">세로</span>
+                <input id="hCm" type="number" step="0.1" min="1" value="5.5" />
+                <span class="size-unit">cm</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="editor-days" id="editorDays"></div>
@@ -1913,7 +1926,7 @@
       <div class="preview-panel">
         <div class="preview-label-row">
           <b>인쇄 미리보기</b>
-          <span id="sizeLabel">8.7 × 5.5 cm</span>
+          <span id="sizeLabel">9 × 5.5 cm</span>
         </div>
         <div class="sheet-frame">
           <div class="sheet" id="sheet">
@@ -3052,7 +3065,7 @@
                 const payload = JSON.parse(old);
                 if (Array.isArray(payload.events)) {
                   const id = generateTimetableId();
-                  timetables = [{ id, name: "저장된 시간표", events: payload.events, wCm: payload.wCm || 8.7, hCm: payload.hCm || 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() }];
+                  timetables = [{ id, name: "저장된 시간표", events: payload.events, wCm: payload.wCm || 9, hCm: payload.hCm || 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() }];
                   currentTimetableId = id;
                 }
               } catch (_) {}
@@ -3073,7 +3086,7 @@
         includeSunday = !!tt.includeSunday;
         const chkSun = document.getElementById("sundayCheck");
         if (chkSun) chkSun.checked = includeSunday;
-        setPrintSize(tt.wCm ?? 8.7, tt.hCm ?? 5.5, true);
+        setPrintSize(tt.wCm ?? 9, tt.hCm ?? 5.5, true);
         manualDisplayStart = null;
         manualDisplayEnd   = null;
         if (typeof initDisplayRangeSelectors === 'function') initDisplayRangeSelectors();
@@ -3084,7 +3097,7 @@
         updateUndoBtn();
       }
 
-      /* ── @page 크기 동적 주입 (CSS 변수는 @page 안에서 미지원) ── */
+      /* ── @page: A4 1페이지, 표 정가운데 배치 ── */
       function updatePageStyle(w, h) {
         let s = document.getElementById("printPageStyle");
         if (!s) {
@@ -3092,13 +3105,13 @@
           s.id = "printPageStyle";
           document.head.appendChild(s);
         }
-        s.textContent = `@page { size: ${w}cm ${h}cm; margin: 0; }`;
+        s.textContent = `@page { size: A4; margin: 0; }`;
       }
 
       /* ── 인쇄 크기 ── */
-      let lastWcm = 8.7, lastHcm = 5.5;
+      let lastWcm = 9, lastHcm = 5.5;
       function setPrintSize(w, h, skipSave) {
-        const ws = (+w > 0 && isFinite(+w)) ? +w : 8.7;
+        const ws = (+w > 0 && isFinite(+w)) ? +w : 9;
         const hs = (+h > 0 && isFinite(+h)) ? +h : 5.5;
         lastWcm = ws;
         lastHcm = hs;
@@ -3242,13 +3255,13 @@
         const cur = getCurrentTimetable();
         if (cur) {
           cur.events = [];
-          cur.wCm = 8.7;
+          cur.wCm = 9;
           cur.hCm = 5.5;
           persistTimetables();
         }
         markClean();
         renderEditor();
-        setPrintSize(8.7, 5.5, true);
+        setPrintSize(9, 5.5, true);
         showToast("초기화되었습니다.");
       });
 
@@ -3338,7 +3351,7 @@
             applyTimetable(timetables[0]);
           } else {
             const newId = generateTimetableId();
-            const newTt = { id: newId, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
+            const newTt = { id: newId, name: "제목 없음", events: [], wCm: 9, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
             timetables.push(newTt);
             currentTimetableId = newId;
             applyTimetable(newTt);
@@ -3360,7 +3373,7 @@
       document.getElementById("newTimetableBtn").addEventListener("click", () => {
         trackEvent("click_new_timetable", { event_category: "action" });
         const id = generateTimetableId();
-        const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
+        const tt = { id, name: "제목 없음", events: [], wCm: 9, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
         timetables.push(tt);
         currentTimetableId = id;
         applyTimetable(tt);
@@ -3480,7 +3493,7 @@
       function _getSheetCmDims() {
         const PX_PER_CM = 37.8;
         const ws = parseFloat(getComputedStyle(document.documentElement)
-          .getPropertyValue("--print-width-cm"))  || 8.7;
+          .getPropertyValue("--print-width-cm"))  || 9;
         const hs = parseFloat(getComputedStyle(document.documentElement)
           .getPropertyValue("--print-height-cm")) || 5.5;
         return { origW: Math.round(ws * PX_PER_CM), origH: Math.round(hs * PX_PER_CM) };
@@ -3637,7 +3650,7 @@
           applyTimetable(cur);
         } else if (timetables.length === 0) {
           const id = generateTimetableId();
-          const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
+          const tt = { id, name: "제목 없음", events: [], wCm: 9, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
           timetables.push(tt);
           currentTimetableId = id;
           applyTimetable(tt);
@@ -3773,7 +3786,7 @@
       async function captureSheetCanvas(scale) {
         scale = scale || 4;
 
-        const wCm = parseFloat(document.getElementById("wCm").value) || 8.7;
+        const wCm = parseFloat(document.getElementById("wCm").value) || 9;
         const hCm = parseFloat(document.getElementById("hCm").value) || 5.5;
         const PX = 37.8; // 1cm ≈ 37.8px (96dpi)
         const pw = Math.round(wCm * PX);
@@ -4049,7 +4062,7 @@
         showToast("PDF 생성 중…");
         try {
           const canvas = await captureSheetCanvas(4);
-          const wCm = parseFloat(document.getElementById("wCm").value) || 8.7;
+          const wCm = parseFloat(document.getElementById("wCm").value) || 9;
           const hCm = parseFloat(document.getElementById("hCm").value) || 5.5;
 
           const { jsPDF } = window.jspdf;
