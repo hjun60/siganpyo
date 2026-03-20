@@ -1007,7 +1007,7 @@
 
       .tl-event .l1 {
         font-weight: 900;
-        font-size: calc(6.5pt * var(--event-scale, 1));
+        font-size: calc(7.5pt * var(--event-scale, 1));
         white-space: normal;
         word-break: keep-all;
         overflow-wrap: break-word;
@@ -1015,7 +1015,7 @@
       }
       .tl-event .l2 {
         font-weight: 600;
-        font-size: calc(5.8pt * var(--event-scale, 1));
+        font-size: calc(6.5pt * var(--event-scale, 1));
         opacity: 0.9;
         white-space: normal;
         word-break: keep-all;
@@ -1024,7 +1024,7 @@
       }
       .tl-event .l3 {
         font-weight: 600;
-        font-size: calc(5.5pt * var(--event-scale, 1));
+        font-size: calc(6pt * var(--event-scale, 1));
         opacity: 0.85;
         white-space: normal;
         word-break: keep-all;
@@ -1846,7 +1846,6 @@
       <div class="topbar-right">
         <button id="reset">초기화</button>
         <button id="undoBtn" title="실행 취소 (Ctrl+Z)">↩ 되돌리기</button>
-        <button class="save dirty" id="saveBtn">저장</button>
         <button class="export-btn" id="exportBtn">내보내기</button>
         <button class="import-btn" id="importBtn">가져오기</button>
         <button class="primary" id="printBtn">프린트</button>
@@ -2224,6 +2223,9 @@
 
       /* ── 에디터 렌더링 ── */
       function renderEditor() {
+        const { displayStart, displayEnd } = getDisplayRange();
+        currentDisplayStart = displayStart;
+        currentDisplayEnd = displayEnd;
         const editorDays = document.getElementById("editorDays");
         editorDays.innerHTML = "";
         const activeDays = getActiveDays();
@@ -2383,8 +2385,8 @@
           renderEditor();
         });
         actions.appendChild(paletteWrap);
-        actions.appendChild(del);
         actions.appendChild(copyBtn);
+        actions.appendChild(del);
         topRow.appendChild(actions);
         top.appendChild(topRow);
 
@@ -2777,7 +2779,7 @@
         if (manualDisplayStart !== null && manualDisplayEnd !== null) {
           return { displayStart: manualDisplayStart, displayEnd: manualDisplayEnd };
         }
-        // 자동: 이벤트 시간 기반 계산
+        // 자동: 이벤트 시간 기반 계산 (최소 DEFAULT 범위 유지하여 시간 선택 가능)
         let minStart = null, maxEnd = null;
         events.forEach((e) => {
           const { start, end } = extractStartEnd(e.time);
@@ -2789,6 +2791,9 @@
         displayStart = Math.max(FULL_SCHEDULE_START, Math.min(FULL_SCHEDULE_END, displayStart));
         displayEnd = Math.max(FULL_SCHEDULE_START, Math.min(FULL_SCHEDULE_END, displayEnd));
         displayEnd = Math.max(displayStart, displayEnd);
+        // 표시 시간 드롭다운이 최소 DEFAULT 범위(09:00~17:00)를 포함하도록 보장
+        displayStart = Math.min(displayStart, DEFAULT_DISPLAY_START);
+        displayEnd = Math.max(displayEnd, DEFAULT_DISPLAY_END);
         return { displayStart, displayEnd };
       }
 
@@ -2918,39 +2923,50 @@
             const visStart = Math.max(currentDisplayStart, e._s);
             const visEnd   = Math.min(currentDisplayEnd,   e._e);
             const topPct    = (visStart - currentDisplayStart) / totalMin * 100;
-            const heightPct = Math.max(0.4, (visEnd - visStart) / totalMin * 100);
+            const heightPct = Math.max(2, (visEnd - visStart) / totalMin * 100);
             ev.style.top    = `${topPct}%`;
             ev.style.height = `${heightPct}%`;
-            // 40분 이상은 100%, 짧을수록 비례 축소
+            // 칸 크기에 맞춰 글자 크기 (짧은 일정은 보수적 scale로 겹침 방지)
             const durationMin = e._e - e._s;
-            const scale = Math.max(0.5, Math.min(1, durationMin / 40));
-            ev.style.setProperty("--event-scale", String(scale));
+            const raw = Math.max(0.75, Math.min(1.1, 0.75 + durationMin / 100));
+            ev.style.setProperty("--event-scale", String(Math.round(raw * 10) / 10));
             col.appendChild(ev);
           });
         });
       }
 
-      /* ── 셀 높이에 맞게 이벤트 글자 크기 자동 축소 ── */
-      /* 인쇄 시 깨짐 방지: scale 소수점 2자리로 반올림 */
+      /* ── 셀 높이에 맞게 이벤트 글자 크기 자동 조절 ── */
+      /* 인쇄/미리보기: scale-up 하지 않음(겹침 방지), 축소만. scale 0.1 단위 반올림 */
       function fitEventText(container) {
+        const isPrint = container.closest(".print-only") || container.id === "modalTimeline";
+        const minScale = isPrint ? 0.7 : 0.6;
+        const roundScale = (s) => Math.round(s * 10) / 10;
         container.querySelectorAll(".tl-event").forEach((ev) => {
           if (ev.clientHeight <= 0) return;
           let scale = parseFloat(ev.style.getPropertyValue("--event-scale") || "1");
-          const minScale = 0.25;  // 너무 작으면 인쇄 시 깨짐
-          for (let i = 0; i < 20; i++) {
+          const getNeeded = () => {
             void ev.offsetHeight;
             const lines = ev.querySelectorAll(".l1,.l2,.l3");
-            if (!lines.length) break;
+            if (!lines.length) return 0;
             let contentH = 0;
             lines.forEach((ln) => { contentH += ln.offsetHeight; });
-            contentH += (lines.length - 1) * 1.32;
             const cs = getComputedStyle(ev);
             const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-            const needed = contentH + padV;
-            if (needed <= ev.clientHeight + 1) break;
-            if (scale <= minScale) break;
-            scale = Math.max(minScale, scale * (ev.clientHeight / needed) * 0.90);
-            ev.style.setProperty("--event-scale", String(Math.round(scale * 100) / 100));
+            return contentH + (lines.length - 1) * 1.5 + padV;
+          };
+          const avail = ev.clientHeight;
+          for (let i = 0; i < 20; i++) {
+            const needed = getNeeded();
+            if (needed <= avail + 2) {
+              if (!isPrint && scale < 1.3 && needed < avail * 0.8) {
+                scale = Math.min(1.3, scale * 1.05);
+                ev.style.setProperty("--event-scale", String(roundScale(scale)));
+              } else break;
+            } else {
+              if (scale <= minScale) break;
+              scale = Math.max(minScale, scale * (avail / needed) * 0.9);
+              ev.style.setProperty("--event-scale", String(roundScale(scale)));
+            }
           }
         });
       }
@@ -2977,12 +2993,14 @@
 
       function markDirty() {
         isDirty = true;
-        document.getElementById("saveBtn").classList.add("dirty");
+        persistTimetables();
+        isDirty = false;
+        document.getElementById("saveBtn")?.classList.remove("dirty");
       }
 
       function markClean() {
         isDirty = false;
-        document.getElementById("saveBtn").classList.remove("dirty");
+        document.getElementById("saveBtn")?.classList.remove("dirty");
       }
 
       function showToast(msg) {
@@ -3234,19 +3252,6 @@
         showToast("초기화되었습니다.");
       });
 
-      document.getElementById("saveBtn").addEventListener("click", () => {
-        const cur = getCurrentTimetable();
-        if (!cur || cur.name === "제목 없음" || !cur.name.trim()) {
-          trackEvent("click_save", { action: "open_modal", event_category: "action" });
-          openSaveModal();
-        } else {
-          trackEvent("click_save", { action: "direct", event_category: "action" });
-          persistCurrentAndStay();
-          renderPreview();
-          showToast("✓ 저장되었습니다!");
-        }
-      });
-
       /* ── 시간표 목록 / 저장 모달 ── */
       
       function renderTimetableSelect() {
@@ -3447,11 +3452,15 @@
         const onAfterPrint = () => {
           wrap.style.cssText = "";
           window.removeEventListener("afterprint", onAfterPrint);
+          if (modalBackdrop.classList.contains("open")) closeModal();
         };
         window.addEventListener("afterprint", onAfterPrint);
         requestAnimationFrame(() => {
           fitEventText(ptl);
-          requestAnimationFrame(() => window.print());
+          requestAnimationFrame(() => {
+            wrap.style.cssText = "display:block!important;position:static!important;left:auto!important;top:auto!important;visibility:visible!important;width:100%!important;height:100%!important;";
+            window.print();
+          });
         });
       }
       document.getElementById("printBtn").addEventListener("click", () => {
@@ -3617,7 +3626,7 @@
       // 모달에서 프린트
       document.getElementById("modalPrintBtn").addEventListener("click", () => {
         trackEvent("click_modal_print", { event_category: "action" });
-        preparePrintView(() => window.print());
+        doPrint();
       });
 
       /* ── 초기화: 저장된 시간표 로드 ── */
