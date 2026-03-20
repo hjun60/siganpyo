@@ -613,16 +613,15 @@
       .event-card .card-field:not(.card-field--title) input,
       .event-card .time-select { font-weight: 400; }
       .event-card .card-field input::placeholder { color: rgba(0,0,0,0.4); }
+      /* 작성 완료 시: 팔레트·버튼 숨김 시 해당 공간도 제거되어 칸 높이 축소 */
       .card-top {
-        display: flex;
+        display: none;
         flex-direction: column;
         gap: 2px;
         min-width: 0;
-        opacity: 0;
-        transition: opacity 0.2s;
       }
       .event-card:hover .card-top,
-      .event-card:focus-within .card-top { opacity: 1; }
+      .event-card:focus-within .card-top { display: flex; }
       .card-top-row {
         display: grid;
         grid-template-columns: repeat(10, 1fr);
@@ -698,6 +697,35 @@
         color: rgba(0,0,0,0.5);
       }
       .swatch.selected.swatch-dark::after { color: rgba(255,255,255,0.9); }
+      /* 팔레트 스와치 호버 시 돋보기 (확대 미리보기) */
+      .swatch-magnifier {
+        position: fixed;
+        z-index: 2500;
+        pointer-events: none;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .swatch-magnifier.show {
+        display: flex;
+      }
+      .swatch-magnifier .mag-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 3px solid rgba(0,0,0,0.15);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      }
+      .swatch-magnifier .mag-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--secondary);
+        background: #fff;
+        padding: 2px 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      }
       .del-btn {
         background: rgba(255,59,48,0.1);
         color: var(--secondary);
@@ -904,6 +932,40 @@
         overflow: hidden;
       }
 
+      /* ── 쿠팡 파트너스 배너 ── */
+      .coupang-banner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(255,255,255,0.9);
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+        text-decoration: none;
+        color: var(--label);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.4;
+        transition: box-shadow 0.2s, transform 0.15s;
+        width: 100%;
+        max-width: 280px;
+        box-sizing: border-box;
+      }
+      .coupang-banner:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08), 0 3px 10px rgba(0,0,0,0.05);
+        transform: translateY(-1px);
+      }
+      .coupang-banner-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+      }
+      .coupang-banner-text {
+        flex: 1;
+        min-width: 0;
+      }
+
       /* ── 타임라인 ── */
       .timeline {
         width: 100%;
@@ -984,12 +1046,12 @@
         width: calc(100% - 1mm);
         margin: 0 auto;
         border-radius: 6px;
-        padding: 0.8mm 1mm;
+        padding: 0.6mm 0.9mm;
         overflow: hidden;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 0.35mm;
+        gap: 0.25mm;
         align-items: center;
         box-sizing: border-box;
         margin-top: 0.25mm;
@@ -1546,7 +1608,7 @@
         .topbar, .editor-panel, .preview-panel,
         .modal-backdrop, .toast,
         .bs-backdrop, #saveModalBackdrop, #importBackdrop,
-        #pdfBtn { display: none !important; }
+        #pdfBtn, .coupang-banner { display: none !important; }
         .print-only {
           display: flex !important;
           justify-content: center;
@@ -1839,7 +1901,7 @@
           padding: 2px 0;
           min-height: 36px;
         }
-        /* 데스크탑 편집 UI 숨김 */
+        /* 모바일: 데스크탑 편집 UI 숨김, mobile-card-summary만 표시 */
         .event-card .drag-handle,
         .event-card .card-top,
         .event-card .card-field { display: none !important; }
@@ -1936,6 +1998,11 @@
         <div style="font-size:10.5px;color:var(--secondary);text-align:center;line-height:1.7;letter-spacing:-0.1px;">
           실제 인쇄 크기로 표시됩니다.<br/>클릭하면 확대 미리보기
         </div>
+        <!-- 쿠팡 파트너스 배너 (인쇄 시 숨김) -->
+        <a href="https://link.coupang.com/a/d7Xm6K" target="_blank" rel="noopener noreferrer" class="coupang-banner">
+          <span class="coupang-banner-icon">🎒</span>
+          <span class="coupang-banner-text">유치원 &amp; 초등 저학년 새 학기 필수 준비물 모아보기 🖍️</span>
+        </a>
       </div>
     </div>
 
@@ -2043,6 +2110,12 @@
     </div>
     <!-- 토스트 알림 -->
     <div class="toast" id="toast"></div>
+
+    <!-- 팔레트 스와치 돋보기 (호버 시 확대 미리보기) -->
+    <div class="swatch-magnifier" id="swatchMagnifier">
+      <div class="mag-circle" id="swatchMagnifierCircle"></div>
+      <span class="mag-label" id="swatchMagnifierLabel"></span>
+    </div>
 
     <!-- 인쇄 전용 -->
     <div class="print-only">
@@ -2234,6 +2307,25 @@
         btn.disabled = undoHistory.length === 0;
       }
 
+      function showSwatchMagnifier(swatchEl) {
+        const mag = document.getElementById("swatchMagnifier");
+        const circle = document.getElementById("swatchMagnifierCircle");
+        const label = document.getElementById("swatchMagnifierLabel");
+        const hex = swatchEl.dataset.hex || "#fff";
+        const lbl = swatchEl.dataset.label || "";
+        circle.style.background = hex;
+        circle.style.boxShadow = hex === "#F5F5F7" ? "inset 0 0 0 1px rgba(0,0,0,0.08)" : "none";
+        label.textContent = lbl;
+        const rect = swatchEl.getBoundingClientRect();
+        mag.style.left = `${rect.left + rect.width / 2 - 24}px`;
+        mag.style.top = `${rect.top - 60}px`;
+        mag.classList.add("show");
+      }
+
+      function hideSwatchMagnifier() {
+        document.getElementById("swatchMagnifier").classList.remove("show");
+      }
+
       /* ── 에디터 렌더링 ── */
       function renderEditor() {
         const { displayStart, displayEnd } = getDisplayRange();
@@ -2418,6 +2510,8 @@
           if (c.hex === "#F5F5F7") sw.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.08)";
           if (c.dark) { sw.style.border = "1px solid rgba(0,0,0,0.12)"; sw.classList.add("swatch-dark"); }
           sw.title = c.label;
+          sw.dataset.hex = c.hex;
+          sw.dataset.label = c.label;
           sw.addEventListener("click", (ev) => ev.stopPropagation());
           sw.addEventListener("mousedown", (ev) => {
             ev.preventDefault();
@@ -2429,6 +2523,8 @@
             renderEditor();
             renderPreview();
           });
+          sw.addEventListener("mouseenter", (ev) => showSwatchMagnifier(ev.target));
+          sw.addEventListener("mouseleave", () => hideSwatchMagnifier());
           (PRIMARY_KEYS.includes(key) ? primaryRow : pastelRow).appendChild(sw);
         });
         paletteZone.appendChild(pastelRow);
@@ -2931,7 +3027,10 @@
             } else {
               ev.className = `tl-event ${e.color || ""}`;
             }
-            ev.innerHTML = buildLineHtml(e.name, e.place, e.time);
+            const timeStr = (e._s != null && e._e != null)
+              ? `${minutesToTimeStr(e._s)}~${minutesToTimeStr(e._e)}`
+              : (e.time || "");
+            ev.innerHTML = buildLineHtml(e.name, e.place, timeStr);
             // 실제 분 기반 정확한 비율 계산 (슬롯 반올림 없음)
             const visStart = Math.max(currentDisplayStart, e._s);
             const visEnd   = Math.min(currentDisplayEnd,   e._e);
