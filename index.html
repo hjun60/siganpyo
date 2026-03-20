@@ -15,6 +15,14 @@
     <link rel="apple-touch-icon" href="/app-icon-fixed.png" />
     <link rel="apple-touch-icon" sizes="1024x1024" href="/app-icon-fixed.png" />
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3J949VDT34"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-3J949VDT34');
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -94,11 +102,8 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        background: linear-gradient(135deg, #FF6B9D 0%, #C084FC 25%, #60A5FA 50%, #34D399 75%, #FBBF24 100%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.15);
       }
       .topbar-title .moon-icon {
         display: inline-flex;
@@ -115,11 +120,7 @@
       .version-badge {
         font-size: 11px;
         font-weight: 500;
-        background: linear-gradient(135deg, #FF6B9D 0%, #C084FC 25%, #60A5FA 50%, #34D399 75%, #FBBF24 100%);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #fff;
         letter-spacing: -0.01em;
         align-self: flex-end;
         margin-bottom: 2px;
@@ -161,6 +162,10 @@
       .topbar .size-group .size-unit,
       .topbar .size-group .size-field input {
         color: #fff !important;
+        background: none !important;
+        -webkit-background-clip: unset !important;
+        -webkit-text-fill-color: #fff !important;
+        background-clip: unset !important;
       }
       .topbar .size-group .size-group-label {
         border-right-color: rgba(255,255,255,0.4);
@@ -904,7 +909,7 @@
         width: 100%;
         height: 100%;
         display: grid;
-        grid-template-columns: 8mm repeat(5, 1fr);
+        grid-template-columns: 5mm repeat(5, 1fr);
         /* grid-template-rows는 JS에서 동적으로 설정 */
         grid-template-rows: auto repeat(30, 1fr);
         background: #fff;
@@ -932,8 +937,8 @@
         display: flex;
         align-items: flex-start;
         justify-content: flex-end;
-        padding: 1.5px 2.5px 0 0;
-        font-size: 5.8pt;
+        padding: 1.5px 0.5mm 0 0;
+        font-size: 6.8pt;
         font-weight: 400;
         line-height: 1;
         user-select: none;
@@ -2036,6 +2041,26 @@
     </div>
 
     <script>
+      /* ── Google Analytics 4 ──
+       * 1. analytics.google.com에서 GA4 속성 생성
+       * 2. 데이터 스트림 → 웹 → Measurement ID 복사 (G-XXXXXXXXXX)
+       * 3. 아래 GA_MEASUREMENT_ID에 입력
+       * 빈 문자열이면 추적 비활성화 (로컬 개발용)
+       */
+      const GA_MEASUREMENT_ID = "G-3J949VDT34";
+
+      function trackEvent(action, params) {
+        if (!GA_MEASUREMENT_ID) return;
+        try {
+          if (typeof gtag === "function") {
+            gtag("event", action, params || {});
+          } else {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: action, ...(params || {}) });
+          }
+        } catch (e) {}
+      }
+
       /* ── 상수 / 색상 ── */
       const FULL_SCHEDULE_START = 0 * 60;    // 00:00 (시간 선택·이벤트 유효 범위)
       const FULL_SCHEDULE_END = 24 * 60;    // 24:00
@@ -2244,6 +2269,7 @@
             pasteBtn.className = "paste-btn";
             pasteBtn.textContent = "붙여넣기";
             pasteBtn.addEventListener("click", () => {
+              trackEvent("event_paste", { event_category: "event" });
               const { start: ps, end: pe } = extractStartEnd(copiedCard.time);
               if (ps != null || pe != null) {
                 if (hasTimeOverlap(d.key, "", ps, pe)) {
@@ -2337,6 +2363,7 @@
         del.textContent = "삭제";
         del.title = "삭제";
         del.addEventListener("click", () => {
+          trackEvent("event_delete", { event_category: "event" });
           pushUndoState();
           events = events.filter((x) => x.id !== e.id);
           markDirty();
@@ -2350,6 +2377,7 @@
         const cardData = e;
         copyBtn.addEventListener("click", (ev) => {
           ev.stopPropagation();
+          trackEvent("event_copy", { event_category: "event" });
           copiedCard = { name: cardData.name || "", place: cardData.place || "", time: cardData.time || "", color: cardData.color };
           showToast("복사됨 — 붙여넣기로 다른 요일에 추가하세요");
           renderEditor();
@@ -2799,7 +2827,7 @@
         currentDisplayEnd = displayEnd;
         currentSlotCount = (displayEnd - displayStart) / SLOT_MIN;
 
-        container.style.gridTemplateColumns = `8mm repeat(${activeDays.length}, 1fr)`;
+        container.style.gridTemplateColumns = `5mm repeat(${activeDays.length}, 1fr)`;
         container.style.gridTemplateRows = `auto repeat(${currentSlotCount}, 1fr)`;
 
         // 모서리
@@ -3082,10 +3110,14 @@
       });
 
       document.getElementById("undoBtn").addEventListener("click", () => {
-        if (undoHistory.length) undo();
+        if (undoHistory.length) {
+          trackEvent("click_undo", { event_category: "action" });
+          undo();
+        }
       });
 
       document.getElementById("saturdayCheck").addEventListener("change", (e) => {
+        trackEvent("toggle_saturday", { value: e.target.checked, event_category: "setting" });
         pushUndoState();
         includeSaturday = e.target.checked;
         const cur = getCurrentTimetable();
@@ -3097,6 +3129,7 @@
       });
 
       document.getElementById("sundayCheck").addEventListener("change", (e) => {
+        trackEvent("toggle_sunday", { value: e.target.checked, event_category: "setting" });
         pushUndoState();
         includeSunday = e.target.checked;
         const cur = getCurrentTimetable();
@@ -3148,6 +3181,7 @@
       displayEndSel.addEventListener("change",   onDisplayRangeChange);
 
       document.getElementById("displayRangeAutoBtn").addEventListener("click", () => {
+        trackEvent("display_range_auto", { event_category: "setting" });
         manualDisplayStart = null;
         manualDisplayEnd   = null;
         initDisplayRangeSelectors();
@@ -3161,6 +3195,7 @@
         if (!btn) return;
         const min = parseInt(btn.dataset.min, 10);
         if (min === SLOT_MIN) return;
+        trackEvent("slot_interval_change", { value: min, event_category: "setting" });
         SLOT_MIN = min;
         TIME_OPTIONS = generateTimeOptions();
         // 버튼 선택 표시 업데이트
@@ -3183,6 +3218,7 @@
 
       document.getElementById("reset").addEventListener("click", () => {
         if (!confirm("초기화하면 현재 시간표의 내용이 모두 지워집니다. 계속할까요?")) return;
+        trackEvent("click_reset", { event_category: "action" });
         pushUndoState();
         events = [];
         const cur = getCurrentTimetable();
@@ -3201,8 +3237,10 @@
       document.getElementById("saveBtn").addEventListener("click", () => {
         const cur = getCurrentTimetable();
         if (!cur || cur.name === "제목 없음" || !cur.name.trim()) {
+          trackEvent("click_save", { action: "open_modal", event_category: "action" });
           openSaveModal();
         } else {
+          trackEvent("click_save", { action: "direct", event_category: "action" });
           persistCurrentAndStay();
           renderPreview();
           showToast("✓ 저장되었습니다!");
@@ -3257,6 +3295,7 @@
         if (!id) return;
         if (e.target.closest(".timetable-item-name")) {
           if (id === currentTimetableId) return;
+          trackEvent("timetable_switch", { event_category: "action" });
           if (isDirty) persistTimetables();
           const tt = timetables.find((t) => t.id === id);
           if (tt) {
@@ -3285,6 +3324,7 @@
         if (!tt) return;
         const name = tt.name || "제목 없음";
         if (!confirm(`"${name}" 시간표를 삭제할까요?`)) return;
+        trackEvent("timetable_delete", { event_category: "action" });
         const idx = timetables.findIndex((t) => t.id === id);
         timetables.splice(idx, 1);
         if (currentTimetableId === id) {
@@ -3313,6 +3353,7 @@
       }
 
       document.getElementById("newTimetableBtn").addEventListener("click", () => {
+        trackEvent("click_new_timetable", { event_category: "action" });
         const id = generateTimetableId();
         const tt = { id, name: "제목 없음", events: [], wCm: 8.7, hCm: 5.5, includeSaturday: false, includeSunday: false, updatedAt: Date.now() };
         timetables.push(tt);
@@ -3363,6 +3404,7 @@
         if (e.target === saveModalBackdrop) closeSaveModal();
       });
       document.getElementById("saveModalConfirmBtn").addEventListener("click", () => {
+        trackEvent("save_confirm", { event_category: "action" });
         const name = saveModalNameInput.value.trim() || "제목 없음";
         if (saveModalRenameTargetId) {
           const tt = timetables.find((t) => t.id === saveModalRenameTargetId);
@@ -3412,7 +3454,10 @@
           requestAnimationFrame(() => window.print());
         });
       }
-      document.getElementById("printBtn").addEventListener("click", doPrint);
+      document.getElementById("printBtn").addEventListener("click", () => {
+        trackEvent("click_print", { event_category: "action" });
+        doPrint();
+      });
 
 
       /* ── 확대 미리보기 모달 ── */
@@ -3553,7 +3598,10 @@
       }
 
       // 미리보기 클릭 → 모달
-      document.querySelector(".sheet-frame").addEventListener("click", openModal);
+      document.querySelector(".sheet-frame").addEventListener("click", () => {
+        trackEvent("preview_click", { event_category: "action" });
+        openModal();
+      });
 
       // 닫기 버튼 / 배경 클릭
       document.getElementById("modalClose").addEventListener("click", closeModal);
@@ -3568,6 +3616,7 @@
 
       // 모달에서 프린트
       document.getElementById("modalPrintBtn").addEventListener("click", () => {
+        trackEvent("click_modal_print", { event_category: "action" });
         preparePrintView(() => window.print());
       });
 
@@ -3593,6 +3642,7 @@
 
       // 내보내기: 모든 시간표를 JSON 파일로 다운로드
       document.getElementById("exportBtn").addEventListener("click", async () => {
+        trackEvent("click_export", { event_category: "action" });
         persistTimetables();
         const data = { version: 1, exportedAt: new Date().toISOString(), timetables, currentTimetableId };
         const json = JSON.stringify(data, null, 2);
@@ -3629,6 +3679,7 @@
       // 가져오기 모달
       const importBackdrop = document.getElementById("importBackdrop");
       document.getElementById("importBtn").addEventListener("click", () => {
+        trackEvent("click_import_open", { event_category: "action" });
         importBackdrop.classList.add("open");
       });
       document.getElementById("importModalClose").addEventListener("click", () => {
@@ -3657,6 +3708,7 @@
               return;
             }
             if (!confirm(`"${file.name}" 파일을 불러오면 현재 저장된 시간표가 모두 교체됩니다.\n계속할까요?`)) return;
+            trackEvent("import_success", { count: data.timetables?.length || 0, event_category: "action" });
             timetables = data.timetables;
             currentTimetableId = data.currentTimetableId || timetables[0]?.id || null;
             persistTimetables();
@@ -3981,6 +4033,7 @@
 
       /* PDF 저장 */
       document.getElementById("pdfBtn").addEventListener("click", async () => {
+        trackEvent("click_pdf", { event_category: "action" });
         const btn = document.getElementById("pdfBtn");
         const origLabel = btn.textContent;
         setLoading(btn, true, origLabel);
