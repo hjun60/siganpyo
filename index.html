@@ -1305,10 +1305,13 @@
       .tl-event .l1 {
         font-weight: 900;
         font-size: calc(7.5pt * var(--event-scale, 1));
-        white-space: normal;
-        word-break: keep-all;
-        overflow-wrap: break-word;
-        line-height: 1.15;
+      }
+      .tl-event .l1.long-title-compress {
+        display: inline-block;
+        letter-spacing: -0.5px;
+        transform: scaleX(0.85);
+        transform-origin: left center;
+        white-space: nowrap;
       }
       .tl-event .l2 {
         font-weight: 600;
@@ -1327,6 +1330,37 @@
         word-break: keep-all;
         overflow-wrap: break-word;
         line-height: 1.15;
+      }
+
+      /* ── 짧은 일정(60분 미만): 좁은 세로 공간에 맞춘 컴팩트 스타일 ── */
+      .tl-event.short-duration {
+        padding: 0.35mm 0.7mm;
+        gap: 0.1mm;
+        margin-top: 0.15mm;
+      }
+      .tl-event.short-duration .l1 {
+        font-size: calc(6pt * var(--event-scale, 1));
+        line-height: 1.1;
+      }
+      .tl-event.short-duration .l2,
+      .tl-event.short-duration .l3 {
+        font-size: calc(5pt * var(--event-scale, 1));
+        line-height: 1.0;
+      }
+      /* 극단적으로 짧은 일정(40분 미만): 여백 최소화, 중앙 정렬 */
+      .tl-event.short-duration-very {
+        padding: 0.2mm 0.6mm;
+        gap: 0;
+        margin-top: 0.1mm;
+      }
+      .tl-event.short-duration-very .l1 {
+        font-size: calc(5.5pt * var(--event-scale, 1));
+        line-height: 1.0;
+      }
+      .tl-event.short-duration-very .l2,
+      .tl-event.short-duration-very .l3 {
+        font-size: calc(4.5pt * var(--event-scale, 1));
+        line-height: 0.95;
       }
 
       /* ── 색상 (iPhone 파스텔 뮤트톤 16색) ── */
@@ -3464,18 +3498,36 @@
             ev.style.height = `${heightPct}%`;
             // 칸 크기에 맞춰 글자 크기 (짧은 일정은 보수적 scale로 겹침 방지)
             const durationMin = e._e - e._s;
+            const visDurationMin = visEnd - visStart;
             const raw = Math.max(0.75, Math.min(1.1, 0.75 + durationMin / 100));
             ev.style.setProperty("--event-scale", String(Math.round(raw * 10) / 10));
+            if (visDurationMin < 60) ev.classList.add("short-duration");
+            if (visDurationMin < 40) ev.classList.add("short-duration-very");
             col.appendChild(ev);
           });
         });
       }
 
+      /* ── 제목이 칸 너비를 초과할 경우 가로 압축 적용 ── */
+      function applyTitleCompression(container) {
+        container.querySelectorAll(".tl-event").forEach((ev) => {
+          const l1 = ev.querySelector(".l1");
+          if (!l1) return;
+          l1.classList.remove("long-title-compress");
+          void l1.offsetWidth; // reflow
+          if (l1.scrollWidth > l1.clientWidth) {
+            l1.classList.add("long-title-compress");
+          }
+        });
+      }
+
       /* ── 셀 높이에 맞게 이벤트 글자 크기 자동 조절 ── */
       /* 인쇄/미리보기: scale-up 하지 않음(겹침 방지), 축소만. scale 0.1 단위 반올림 */
+      /* 인쇄/미리보기: 전체 font-size 스케일 방지(minScale=1), 제목만 가로 압축으로 처리 */
       function fitEventText(container) {
         const isPrint = container.closest(".print-only") || container.id === "modalTimeline";
-        const minScale = isPrint ? 0.7 : 0.6;
+        applyTitleCompression(container);
+        const minScale = isPrint ? 1 : 0.6;
         const roundScale = (s) => Math.round(s * 10) / 10;
         container.querySelectorAll(".tl-event").forEach((ev) => {
           if (ev.clientHeight <= 0) return;
