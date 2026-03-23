@@ -706,6 +706,15 @@
         align-items: center;
         gap: 8px;
       }
+      .slot-interval-row--display-size {
+        flex-wrap: wrap;
+      }
+      .slot-interval-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+      }
       .slot-interval-label {
         font-size: 12px;
         font-weight: 600;
@@ -845,6 +854,7 @@
       .card-palette-wrap {
         display: flex;
         align-items: center;
+        gap: 6px;
       }
       .palette-btn, .del-btn, .copy-btn {
         border: none;
@@ -864,6 +874,11 @@
       }
       .palette-btn:hover { background: rgba(147,112,219,0.25); color: #6a3d9a; }
       .card-color-picker { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+      .last-custom-swatch {
+        width: 16px; height: 16px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+        border: 1.5px solid rgba(0,0,0,0.15); transition: all 0.2s ease;
+      }
+      .last-custom-swatch:hover { transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
       .card-top-row .card-actions { grid-column: 8 / 11; display: flex; gap: 4px; justify-content: flex-end; }
       .card-palette {
         display: flex;
@@ -1848,6 +1863,9 @@
         .tips-box { padding: 24px 22px 22px; max-height: 85vh; }
         .tips-list { font-size: 15px; }
 
+        /* 표시 시간·인쇄 크기: 모바일에서 줄바꿈 + 간격 */
+        .slot-interval-row--display-size { row-gap: 12px; }
+
         /* 에디터 패널: 모바일에서 전체 너비 */
         .editor-panel {
           flex: none;
@@ -2081,6 +2099,11 @@
         box-shadow: 0 0 0 2px rgba(107,141,214,0.35);
         transform: scale(1.12);
       }
+      .bs-last-custom-swatch {
+        width: 28px; height: 28px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+        border: 1.5px solid rgba(0,0,0,0.12); transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .bs-last-custom-swatch:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
       .bs-field {
         display: flex;
         flex-direction: column;
@@ -2239,8 +2262,8 @@
     <!-- 상단 바 -->
     <div class="topbar">
       <div class="topbar-brand">
-        <span class="topbar-title"><span class="moon-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="topbar-title-text">Luna's 시간표</span><span class="version-badge">v1.0</span></span>
-        <span class="topbar-tagline">냉장고에 붙이기 딱 좋은, 우리 아이 종이 시간표 1분 완성</span>
+        <span class="topbar-title"><span class="moon-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="topbar-title-text">luna-schedule</span><span class="version-badge">v1.0</span></span>
+        <span class="topbar-tagline">우리 아이 새학기 필수템! 엑셀, 한글 없이도 누구나 쉽고 편하게 1분완성 종이 시간표!</span>
       </div>
       <div class="topbar-right">
         <button id="reset" class="topbar-extra">초기화</button>
@@ -2311,12 +2334,14 @@
               <button class="slot-btn" data-min="60">1시간</button>
             </div>
           </div>
-          <div class="slot-interval-row">
-            <span class="slot-interval-label">🕐 표시 시간</span>
-            <select class="display-range-sel" id="displayStartSel"></select>
-            <span class="slot-interval-label">~</span>
-            <select class="display-range-sel" id="displayEndSel"></select>
-            <button class="slot-btn" id="displayRangeAutoBtn" title="이벤트 시간에 맞게 자동 설정">자동</button>
+          <div class="slot-interval-row slot-interval-row--display-size">
+            <div class="slot-interval-group">
+              <span class="slot-interval-label">🕐 표시 시간</span>
+              <select class="display-range-sel" id="displayStartSel"></select>
+              <span class="slot-interval-label">~</span>
+              <select class="display-range-sel" id="displayEndSel"></select>
+              <button class="slot-btn" id="displayRangeAutoBtn" title="이벤트 시간에 맞게 자동 설정">자동</button>
+            </div>
             <div class="size-group">
               <span class="size-group-label">📄 인쇄 크기</span>
               <div class="size-field">
@@ -2628,6 +2653,7 @@
       let events = defaultEvents();
       let uidCounter = 200;
       let copiedCard = null; // { name, place, time, color } 복사 버퍼
+      let lastCustomColor = null; // 팔레트에서 마지막으로 선택한 커스텀 색상 (hex)
 
       /* ── 실행 취소 (Undo) ── */
       const MAX_UNDO = 30;
@@ -2821,6 +2847,7 @@
         colorPicker.addEventListener("input", (ev) => {
           const idx = events.findIndex((x) => x.id === e.id);
           if (idx < 0) return;
+          lastCustomColor = ev.target.value;
           pushUndoState();
           events[idx].color = ev.target.value;
           markDirty();
@@ -2838,6 +2865,27 @@
           colorPicker.click();
         });
         paletteWrap.appendChild(colorPicker);
+        if (lastCustomColor) {
+          const lastCustomChip = document.createElement("div");
+          lastCustomChip.className = "last-custom-swatch";
+          lastCustomChip.style.background = lastCustomColor;
+          lastCustomChip.dataset.hex = lastCustomColor;
+          lastCustomChip.dataset.label = "커스텀 " + lastCustomColor.toUpperCase();
+          lastCustomChip.title = lastCustomChip.dataset.label;
+          lastCustomChip.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            const idx = events.findIndex((x) => x.id === e.id);
+            if (idx < 0) return;
+            pushUndoState();
+            events[idx].color = lastCustomColor;
+            markDirty();
+            renderEditor();
+            renderPreview();
+          });
+          lastCustomChip.addEventListener("mouseenter", (ev) => showSwatchMagnifier(ev.target));
+          lastCustomChip.addEventListener("mouseleave", () => hideSwatchMagnifier());
+          paletteWrap.appendChild(lastCustomChip);
+        }
         paletteWrap.appendChild(paletteBtn);
         const actions = document.createElement("div");
         actions.className = "card-actions";
@@ -3517,6 +3565,13 @@
             cur.hCm = hCm;
             cur.includeSaturday = includeSaturday;
             cur.includeSunday = includeSunday;
+            if (manualDisplayStart != null && manualDisplayEnd != null) {
+              cur.displayStart = manualDisplayStart;
+              cur.displayEnd = manualDisplayEnd;
+            } else {
+              delete cur.displayStart;
+              delete cur.displayEnd;
+            }
             cur.updatedAt = Date.now();
           }
           localStorage.setItem(TIMETABLES_KEY, JSON.stringify({ timetables, currentTimetableId: currentTimetableId }));
@@ -3562,9 +3617,24 @@
         const chkSun = document.getElementById("sundayCheck");
         if (chkSun) chkSun.checked = includeSunday;
         setPrintSize(tt.wCm ?? 9, tt.hCm ?? 5.5, true);
-        manualDisplayStart = null;
-        manualDisplayEnd   = null;
+        if (tt.displayStart != null && tt.displayEnd != null) {
+          manualDisplayStart = tt.displayStart;
+          manualDisplayEnd = tt.displayEnd;
+        } else {
+          manualDisplayStart = null;
+          manualDisplayEnd = null;
+        }
         if (typeof initDisplayRangeSelectors === 'function') initDisplayRangeSelectors();
+        if (manualDisplayStart != null && manualDisplayEnd != null) {
+          const ds = document.getElementById("displayStartSel");
+          const de = document.getElementById("displayEndSel");
+          if (ds && de) {
+            buildHourOptions(ds, manualDisplayStart);
+            buildHourOptions(de, manualDisplayEnd);
+            ds.value = String(manualDisplayStart);
+            de.value = String(manualDisplayEnd);
+          }
+        }
         renderEditor();
         renderPreview();
         markClean();
@@ -3693,8 +3763,8 @@
         manualDisplayEnd   = e;
         currentDisplayStart = s;
         currentDisplayEnd   = e;
-        // 종료가 시작보다 작으면 자동 보정
         buildHourOptions(displayEndSel, e);
+        persistTimetables();
         renderEditor();
         renderPreview();
       }
@@ -4456,10 +4526,28 @@
         cp.value = bsColorInfo.hex;
         cp.title = "팔레트";
         cp.addEventListener("input", (e) => {
+          lastCustomColor = e.target.value;
           bsColor = e.target.value;
           colorsEl.querySelectorAll(".bs-swatch").forEach(s => s.classList.remove("selected"));
         });
-        colorsEl.appendChild(cp);
+        const paletteToolRow = document.createElement("div");
+        paletteToolRow.className = "bs-palette-row";
+        paletteToolRow.style.alignItems = "center";
+        paletteToolRow.style.gap = "8px";
+        if (lastCustomColor) {
+          const lastSw = document.createElement("div");
+          lastSw.className = "bs-last-custom-swatch";
+          lastSw.style.background = lastCustomColor;
+          lastSw.title = "커스텀 " + lastCustomColor.toUpperCase();
+          lastSw.addEventListener("click", () => {
+            bsColor = lastCustomColor;
+            colorsEl.querySelectorAll(".bs-swatch").forEach(s => s.classList.remove("selected"));
+            if (cp) cp.value = lastCustomColor;
+          });
+          paletteToolRow.appendChild(lastSw);
+        }
+        paletteToolRow.appendChild(cp);
+        colorsEl.appendChild(paletteToolRow);
 
         // 입력 필드
         document.getElementById("bsName").value  = ev ? (ev.name  || "") : "";
